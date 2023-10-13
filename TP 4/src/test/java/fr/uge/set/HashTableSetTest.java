@@ -439,7 +439,7 @@ public class HashTableSetTest {
     }
   }
 
-  /*
+
   @Nested
   class Q9 {
 
@@ -528,5 +528,4 @@ public class HashTableSetTest {
       );
     }
   }
-  */
 }

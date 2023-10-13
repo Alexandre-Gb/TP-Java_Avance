@@ -2,11 +2,10 @@ package fr.uge.set;
 
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 public final class HashTableSet<E> {
   private final static int INIT_SIZE = 16;
-  private Entry[] entries = new Entry[INIT_SIZE];
+  private Entry<E>[] entries = new Entry[INIT_SIZE];
   private int size; // 0 by default
 
   public int size() {
@@ -18,7 +17,7 @@ public final class HashTableSet<E> {
     int index = getIndex(key);
 
     if (!containsAtIndex(key, index)) {
-      entries[index] = new Entry(key, entries[index]);
+      entries[index] = new Entry<>(key, entries[index]);
       size++;
 
       if (size >= entries.length / 2) {
@@ -27,12 +26,11 @@ public final class HashTableSet<E> {
     }
   }
 
-  @SuppressWarnings("unchecked")
   public void forEach(Consumer<? super E> consumer) {
     Objects.requireNonNull(consumer);
     for (var entry : entries) {
       for (var e = entry; e != null; e = e.next) {
-        consumer.accept((E) e.key);
+        consumer.accept(e.key);
       }
     }
   }
@@ -52,17 +50,18 @@ public final class HashTableSet<E> {
     return false;
   }
 
-  private int getIndex(Object key) {
+  private int getIndex(E key) {
     Objects.requireNonNull(key);
     return key.hashCode() & entries.length - 1;
   }
 
+  @SuppressWarnings("unchecked")
   private void enlargeEntries() {
     var newEntries = new Entry[entries.length * 2];
 
     forEach(key -> {
       int index = getIndex(key);
-      newEntries[index] = new Entry(key, newEntries[index]);
+      newEntries[index] = new Entry<E>(key, newEntries[index]);
     });
 
 //    for (var entry : entries) {
@@ -76,10 +75,28 @@ public final class HashTableSet<E> {
   }
 
   public void addAll(HashTableSet<? extends E> set) {
+    Objects.requireNonNull(set);
     set.forEach(this::add);
   }
 
-  private record Entry<E>(E key, Entry next) { }
+  public boolean equals(HashTableSet<? super E> set) {
+    Objects.requireNonNull(set);
+    if (set.size() != size) {
+      return false;
+    }
+
+    for (var entry : entries) {
+      for (var e = entry; e != null; e = e.next) {
+        if (!set.contains(e.key)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  private record Entry<E>(E key, Entry<E> next) { }
 }
 
 
@@ -87,9 +104,9 @@ public final class HashTableSet<E> {
 /*
 package fr.uge.set;
 
-        import java.util.Objects;
-        import java.util.function.Consumer;
-        import java.util.function.Predicate;
+import java.util.Objects;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public final class HashTableSet {
   private final static int INIT_SIZE = 16;
