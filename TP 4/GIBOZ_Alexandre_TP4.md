@@ -305,6 +305,8 @@ On obtient la classe `HashTableSet` suivante:
 ```java
 public final class HashTableSet<E> {
      private final static int INIT_SIZE = 16;
+     
+     @SuppressWarnings("unchecked")
      private Entry<E>[] entries = new Entry[INIT_SIZE];
      private int size; // 0 by default
 
