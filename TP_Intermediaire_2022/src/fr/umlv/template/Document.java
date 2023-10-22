@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
 public class Document<E> {
   private final Template template;
@@ -20,6 +19,11 @@ public class Document<E> {
 
     this.template = template;
     this.functions = List.copyOf(functions);
+  }
+
+  protected String applyTemplate(E record) {
+    Objects.requireNonNull(record);
+    return this.template.interpolate(functions.stream().map(e -> e.apply(record)).toList());
   }
 
   public record Template(List<String> fragments) {
