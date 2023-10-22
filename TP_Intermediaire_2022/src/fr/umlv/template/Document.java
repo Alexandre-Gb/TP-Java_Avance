@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Document<E /*extends Record*/> {
+public class Document<E extends Record> {
   private final Template template;
   private final List<Function<? super E, ?>> functions;
 
@@ -79,13 +79,13 @@ public class Document<E /*extends Record*/> {
     }
 
     @SafeVarargs
-    public final <E> Document<E> toDocument(Function<E, ?>... functions) {
+    public final <E extends Record> Document<E> toDocument(Function<? super E, ?>... functions) {
       Objects.requireNonNull(functions);
       return new Document<>(this, List.of(functions));
     }
 
     public <E> Template bind(E value) {
-      Objects.requireNonNull(value);
+      /* Objects.requireNonNull(value); - It must allow null values */
 
       var binder = Stream.concat(Stream.of(
               fragments.get(0)
