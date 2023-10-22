@@ -3,8 +3,25 @@ package fr.umlv.template;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-public class Document {
+public class Document<E> {
+  private final Template template;
+  private final List<Function<? super E, ?>> functions;
+
+  public Document(Template template, List<? extends Function<? super E, ?>> functions) {
+    Objects.requireNonNull(template);
+    Objects.requireNonNull(functions);
+
+    if (functions.size() + 1 != template.fragments.size()) {
+      throw new IllegalArgumentException();
+    }
+
+    this.template = template;
+    this.functions = List.copyOf(functions);
+  }
+
   public record Template(List<String> fragments) {
     public Template(List<String> fragments) {
       Objects.requireNonNull(fragments);
