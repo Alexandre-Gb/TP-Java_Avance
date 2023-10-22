@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Document<E /*extends Record*/> {
   private final Template template;
@@ -79,7 +80,20 @@ public class Document<E /*extends Record*/> {
 
     @SafeVarargs
     public final <E> Document<E> toDocument(Function<E, ?>... functions) {
+      Objects.requireNonNull(functions);
       return new Document<>(this, List.of(functions));
+    }
+
+    public <E> Template bind(E value) {
+      Objects.requireNonNull(value);
+
+      var binder = Stream.concat(Stream.of(
+              fragments.get(0)
+                      .concat(String.valueOf(value))
+                      .concat(fragments.get(1))), fragments.subList(2, fragments.size())
+              .stream()).toList();
+
+      return new Template(binder);
     }
 
     @Override
