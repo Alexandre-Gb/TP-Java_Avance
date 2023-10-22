@@ -64,7 +64,8 @@ public class Document<E> {
       return new Template(template);
     }
 
-    public <E> Document<E> toDocument(Function<E, ?>... functions) {
+    @SafeVarargs
+    public final <E> Document<E> toDocument(Function<E, ?>... functions) {
       return new Document<>(this, List.of(functions));
     }
 
