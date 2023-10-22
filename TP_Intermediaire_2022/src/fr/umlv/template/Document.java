@@ -4,8 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public class Document<E> {
+public class Document<E /*extends Record*/> {
   private final Template template;
   private final List<Function<? super E, ?>> functions;
 
@@ -24,6 +25,14 @@ public class Document<E> {
   protected String applyTemplate(E record) {
     Objects.requireNonNull(record);
     return this.template.interpolate(functions.stream().map(e -> e.apply(record)).toList());
+  }
+
+  public String generate(List<? extends E> records, String separator) {
+    Objects.requireNonNull(records);
+    Objects.requireNonNull(separator);
+    return records.stream()
+            .map(this::applyTemplate)
+            .collect(Collectors.joining(separator));
   }
 
   public record Template(List<String> fragments) {
