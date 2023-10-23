@@ -23,7 +23,8 @@ public class Document<E extends Record> {
     this.functions = List.copyOf(functions);
   }
 
-  protected String applyTemplate(E record) {
+  /* Package */
+  String applyTemplate(E record) {
     Objects.requireNonNull(record);
     return this.template.interpolate(functions.stream().map(e -> e.apply(record)).toList());
   }
