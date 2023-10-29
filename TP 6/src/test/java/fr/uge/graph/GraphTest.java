@@ -343,7 +343,7 @@ public class GraphTest {
     }
   }
 
-  /*
+
   @Nested
   public class Q6 {
 
@@ -486,6 +486,7 @@ public class GraphTest {
   }
 
 
+  /*
   @Nested
   public class Q7 {
 

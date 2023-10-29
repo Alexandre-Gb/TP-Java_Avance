@@ -1,6 +1,7 @@
 package fr.uge.graph;
 
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -92,7 +93,7 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @return an iterator on all nodes connected to the specified source node.
    * @throws IndexOutOfBoundsException if src is not a valid node number.
    */
-  //neighborIterator(src)
+  Iterator<Integer> neighborIterator(int src);
 
   /**
    * An edge of the graph.

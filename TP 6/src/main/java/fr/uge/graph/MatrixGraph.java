@@ -1,5 +1,7 @@
 package fr.uge.graph;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -34,6 +36,34 @@ final class MatrixGraph<T> implements Graph<T> {
     Objects.checkIndex(dst, nodeCount);
 
     return Optional.ofNullable(graph[src * nodeCount + dst]);
+  }
+
+  @Override
+  public Iterator<Integer> neighborIterator(int src) {
+    Objects.checkIndex(src, nodeCount);
+    return new Iterator<>() {
+      private int counter;
+
+      @Override
+      public boolean hasNext() {
+        for (; counter < nodeCount; counter++) {
+          if (getWeight(src, counter).isPresent()) {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
+      @Override
+      public Integer next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+
+        return counter++;
+      }
+    };
   }
 
   @Override

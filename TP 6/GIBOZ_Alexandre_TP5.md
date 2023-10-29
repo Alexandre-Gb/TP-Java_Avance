@@ -212,3 +212,53 @@ default void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T,
   }
 }
 ```
+
+6. **Rappeler le fonctionnement d'un itérateur et de ses méthodes hasNext et next.**
+
+Un itérateur est un objet permettant de parcourir une collection d'éléments. Il permet de parcourir une collection sans avoir à connaître la structure ou la taille de cette dernière.
+
+Elle possède un total de 4 méthodes, dont `hasNext()` et `next()`. La première renvoi une valeur booléenne en fonction de s'il existe un élément suivant dans la collection, la seconde 
+renvoi l'élément suivant E de la collection.
+
+**Que renvoie next si hasNext retourne false ?**
+
+Dans le cas ou aucun élément n'est présent et que l'on appelle la méthode `next()`, cette dernière renvoi une `NoSuchElementException`.
+
+**Expliquer pourquoi il n'est pas nécessaire, dans un premier temps, d'implanter la méthode remove qui fait pourtant partie de l'interface.**
+
+La méthode `remove()` permet de supprimer l'élément E renvoyé en dernier par l'itérateur. Cette méthode ne peut être appelée qu'une fois
+par cellule. 
+
+Il ne sera pas nécessaire d'implanter cette méthode car il s'agit d'une méthode par défaut, contrairement à `next()` et `hasNext()`, 
+
+**Implanter la méthode neighborsIterator(src) qui renvoie un itérateur sur tous les nœuds ayant un arc dont la source est src.**
+
+On implante la méthode `neighborsIterator`:
+```java
+@Override
+public Iterator<Integer> neighborIterator(int src) {
+  Objects.checkIndex(src, nodeCount);
+  
+  return new Iterator<>() {
+    private int counter; // 0 by default
+    
+    @Override
+    public boolean hasNext() {
+      for (; counter < nodeCount; counter++) {
+        if (getWeight(src, counter).isPresent()) {
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    @Override
+    public Integer next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      return counter++;
+    }
+  };
+}
+```
