@@ -26,17 +26,18 @@ package fr.uge.graph;
 
 public final class MatrixGraph<T> implements Graph<T> {
   private final T[] graph;
-  private final int capacity;
+  private final int nodeCount;
 
-   public MatrixGraph(int capacity) {
-      if (capacity < 0) {
+   public MatrixGraph(int nodeCount) {
+      if (nodeCount < 0) {
          throw new IllegalArgumentException();
       }
 
       @SuppressWarnings("unchecked") // Réduction de porté à la variable locale 
-      T[] graph = (T[]) new Object[capacity * capacity];
+      T[] graph = (T[]) new Object[nodeCount * nodeCount];
+      
       this.graph = graph;
-      this.capacity = capacity;
+      this.nodeCount = nodeCount;
    }
    
 //  @SuppressWarnings("unchecked")
@@ -51,7 +52,7 @@ public final class MatrixGraph<T> implements Graph<T> {
 
   @Override
   public int nodeCount() {
-    return capacity;
+    return nodeCount;
   }
 }
 ```
@@ -78,3 +79,78 @@ public sealed interface Graph<T> permits MatrixGraph {
 }
 ```
 
+2. **On peut remarquer que la classe MatrixGraph n'apporte pas de nouvelles méthodes par rapport aux méthodes de l'interface Graph donc il n'est pas nécessaire que la classe MatrixGraph soit publique.
+   Ajouter une méthode factory nommée createMatrixGraph dans l'interface Graph et déclarer la classe MatrixGraph non publique.**
+
+On ajoute la méthode statique à l'interface:
+```java
+public sealed interface Graph<T> permits MatrixGraph {
+  // ...
+
+  /**
+   * Create a graph implementation based on a matrix.
+   *
+   * @param <T> type of the edge weight.
+   * @param nodeCount the number of nodes.
+   * @return a new implementation of Graph.
+   */
+  static <T> Graph<T> createMatrixGraph(int nodeCount) {
+    if (nodeCount < 0) {
+      throw new IllegalArgumentException();
+    }
+
+    return new MatrixGraph<>(nodeCount);
+  }
+
+  // ...
+}
+```
+
+A noter que l'on fait maintenant le check de nodeCount ici, on a plus besoin de le faire dans le constructeur de `MatrixGraph` car cette nouvelle
+méthode statique est à présent l'unique point d'accès permettant d'obtenir une MatrixGraph. On conserve cette comparaison dans le constructeur uniquement pour passer le test Q1.
+
+On modifie la classe en conséquence en faisant de cette dernière une classe à la visibilité `package`:
+```java
+final class MatrixGraph<T> implements Graph<T> {
+  private final T[] graph;
+  private final int nodeCount;
+
+  public MatrixGraph(int nodeCount) {
+//    if (nodeCount < 0) {
+//      throw new IllegalArgumentException();
+//    }
+    
+    @SuppressWarnings("unchecked")
+    T[] graph = (T[]) new Object[nodeCount * nodeCount];
+    
+    this.graph = graph;
+    this.nodeCount = nodeCount;
+  }
+
+  @Override
+  public int nodeCount() {
+    return nodeCount;
+  }
+}
+```
+
+3. **Implanter la méthode addEdge en utilisant la javadoc pour savoir quelle est la sémantique exacte.
+   Implanter la méthode getWeight en utilisant la javadoc pour savoir quelle est la sémantique exacte.**
+
+On implante la méthode `addEdge` et `getWeight`:
+```java
+@Override
+public void addEdge(int src, int dst, T weight) {
+  Objects.requireNonNull(weight);
+  Objects.checkIndex(src, nodeCount);
+  Objects.checkIndex(dst, nodeCount);
+  graph[src * nodeCount + dst] = weight;
+}
+
+@Override
+public Optional<T> getWeight(int src, int dst) {
+  Objects.checkIndex(src, nodeCount);
+  Objects.checkIndex(dst, nodeCount);
+  return Optional.ofNullable(graph[src * nodeCount + dst]);
+}
+```

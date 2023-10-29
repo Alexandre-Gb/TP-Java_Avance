@@ -1,5 +1,7 @@
 package fr.uge.graph;
 
+import java.util.Optional;
+
 /**
  * An oriented graph with values on edges and not on nodes.
  */
@@ -17,7 +19,13 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @param nodeCount the number of nodes.
    * @return a new implementation of Graph.
    */
-  //createMatrixGraph(nodeCount)
+  static <T> Graph<T> createMatrixGraph(int nodeCount) {
+    if (nodeCount < 0) {
+      throw new IllegalArgumentException();
+    }
+
+    return new MatrixGraph<>(nodeCount);
+  }
 
   /**
    * Add an edge between two nodes or replace it if an edge already exists.
@@ -28,7 +36,7 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @throws NullPointerException if weight is {@code null}.
    * @throws IndexOutOfBoundsException if src or dst is not a valid node number.
    */
-  //addEdge(src, dst, weight)
+  void addEdge(int src, int dst, T weight);
 
   /**
    * Return the weight of an edge.
@@ -38,7 +46,7 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @return the weight of the edge between {@code src}and {@code dst} or Optional.empty().
    * @throws IndexOutOfBoundsException if src or dst is not a valid node number.
    */
-  //getWeight(src, dst)
+  Optional<T> getWeight(int src, int dst);
 
   /**
    * Adds all the edge values of the graph taken as parameter to the current graph,

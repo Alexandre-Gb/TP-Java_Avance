@@ -66,17 +66,16 @@ public class GraphTest {
   }
 
 
-//  public interface GraphFactory {
-//    <T> Graph<T> createGraph(int nodeCount);
-//  }
-//  static Stream<GraphFactory> graphFactoryProvider() {
-//    return Stream.of(Graph::createMatrixGraph /*, Graph::createNodeMapGraph*/);
-//  }
-//  static Stream<Arguments> graphFactoryTwoProviders() {
-//    return graphFactoryProvider().flatMap(p1 -> graphFactoryProvider().map(p2 -> Arguments.of(p1, p2)));
-//  }
+  public interface GraphFactory {
+    <T> Graph<T> createGraph(int nodeCount);
+  }
+  static Stream<GraphFactory> graphFactoryProvider() {
+    return Stream.of(Graph::createMatrixGraph /*, Graph::createNodeMapGraph*/);
+  }
+  static Stream<Arguments> graphFactoryTwoProviders() {
+    return graphFactoryProvider().flatMap(p1 -> graphFactoryProvider().map(p2 -> Arguments.of(p1, p2)));
+  }
 
-  /*
   @Nested
   public class Q2 {
     @ParameterizedTest
@@ -213,6 +212,7 @@ public class GraphTest {
   }
 
 
+  /*
   @Nested
   public class Q4 {
 
