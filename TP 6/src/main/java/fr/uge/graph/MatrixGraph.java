@@ -2,6 +2,7 @@ package fr.uge.graph;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 final class MatrixGraph<T> implements Graph<T> {
   private final T[] graph;

@@ -1,6 +1,9 @@
 package fr.uge.graph;
 
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 /**
  * An oriented graph with values on edges and not on nodes.
@@ -57,7 +60,30 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @throws NullPointerException if either graph or merger is null.
    * @throws IllegalArgumentException if the graphs do not have the same number of nodes.
    */
-  //mergeAll(graph, merger)
+   // void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T, ? extends T> merger);
+
+  default void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T, ? extends T> merger) {
+    Objects.requireNonNull(graph);
+    Objects.requireNonNull(merger);
+
+    if (graph.nodeCount() != nodeCount()) {
+      throw new IllegalArgumentException();
+    }
+
+    for (int src = 0; src < nodeCount(); src++) {
+      for (int dst = 0; dst < nodeCount(); dst++) {
+        var weight = graph.getWeight(src, dst);
+        if (weight.isPresent()) {
+          var currentWeight = getWeight(src, dst);
+          if (currentWeight.isPresent()) {
+            addEdge(src, dst, merger.apply(currentWeight.get(), weight.get()));
+          } else {
+            addEdge(src, dst, weight.get());
+          }
+        }
+      }
+    }
+  }
 
   /**
    * Returns all the nodes that are connected to the node taken as parameter.

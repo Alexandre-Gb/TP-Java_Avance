@@ -154,3 +154,61 @@ public Optional<T> getWeight(int src, int dst) {
   return Optional.ofNullable(graph[src * nodeCount + dst]);
 }
 ```
+
+4. **On souhaite maintenant implanter une méthode mergeAll qui permet d'ajouter les valeurs des arcs d'un graphe au graphe courant.
+   Dans le cas où on souhaite ajouter une valeur à un arc qui possède déjà une valeur, on utilise une fonction prise en second paramètre qui prend deux valeurs et renvoie la nouvelle valeur.**
+
+On implante la méthode `mergeAll`:
+```java
+@Override
+public void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T, ? extends T> merger) {
+  Objects.requireNonNull(graph);
+  Objects.requireNonNull(merger);
+  
+  if (graph.nodeCount() != nodeCount) {
+    throw new IllegalArgumentException();
+  }
+  
+  for (int src = 0; src < nodeCount; src++) {
+    for (int dst = 0; dst < nodeCount; dst++) {
+      var weight = graph.getWeight(src, dst);
+      if (weight.isPresent()) {
+        var currentWeight = getWeight(src, dst);
+        if (currentWeight.isPresent()) {
+          addEdge(src, dst, merger.apply(currentWeight.get(), weight.get()));
+        } else {
+          addEdge(src, dst, weight.get());
+        }
+      }
+    }
+  }
+}
+```
+
+5. **En fait, on peut remarquer que l'on peut écrire le code de mergeAll pour qu'il soit indépendant de l'implantation et donc écrire l'implantation de mergeAll directement dans l'interface.
+   Déplacer l'implantation de mergeAll dans l'interface et si nécessaire modifier le code pour qu'il soit indépendant de l'implantation.**
+
+On déplace la méthode dans l'interface, en faisant de la méthode une méthode par défaut:
+```java
+default void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T, ? extends T> merger) {
+  Objects.requireNonNull(graph);
+  Objects.requireNonNull(merger);
+  if (graph.nodeCount() != nodeCount()) {
+    throw new IllegalArgumentException();
+  }
+  
+  for (int src = 0; src < nodeCount(); src++) {
+    for (int dst = 0; dst < nodeCount(); dst++) {
+      var weight = graph.getWeight(src, dst);
+      if (weight.isPresent()) {
+        var currentWeight = getWeight(src, dst);
+        if (currentWeight.isPresent()) {
+          addEdge(src, dst, merger.apply(currentWeight.get(), weight.get()));
+        } else {
+          addEdge(src, dst, weight.get());
+        }
+      }
+    }
+  }
+}
+```
