@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiFunction;
 
 final class MatrixGraph<T> implements Graph<T> {
   private final T[] graph;
@@ -43,6 +42,7 @@ final class MatrixGraph<T> implements Graph<T> {
     Objects.checkIndex(src, nodeCount);
     return new Iterator<>() {
       private int counter;
+      private int last = -1;
 
       @Override
       public boolean hasNext() {
@@ -61,7 +61,17 @@ final class MatrixGraph<T> implements Graph<T> {
           throw new NoSuchElementException();
         }
 
+        last = counter;
         return counter++;
+      }
+
+      @Override
+      public void remove() {
+        if (last == -1 || graph[src * nodeCount + last] == null) {
+          throw new IllegalStateException();
+        }
+
+        graph[src * nodeCount + last] = null;
       }
     };
   }

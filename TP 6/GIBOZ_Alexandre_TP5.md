@@ -226,9 +226,6 @@ Dans le cas ou aucun élément n'est présent et que l'on appelle la méthode `n
 
 **Expliquer pourquoi il n'est pas nécessaire, dans un premier temps, d'implanter la méthode remove qui fait pourtant partie de l'interface.**
 
-La méthode `remove()` permet de supprimer l'élément E renvoyé en dernier par l'itérateur. Cette méthode ne peut être appelée qu'une fois
-par cellule. 
-
 Il ne sera pas nécessaire d'implanter cette méthode car il s'agit d'une méthode par défaut, contrairement à `next()` et `hasNext()`, 
 
 **Implanter la méthode neighborsIterator(src) qui renvoie un itérateur sur tous les nœuds ayant un arc dont la source est src.**
@@ -262,3 +259,56 @@ public Iterator<Integer> neighborIterator(int src) {
   };
 }
 ```
+
+7. **Expliquer le fonctionnement précis de la méthode remove de l'interface Iterator.**
+
+La méthode `remove()` permet de supprimer l'élément E renvoyé en dernier par l'itérateur. 
+Cette méthode ne peut être appelée qu'une fois par cellule.
+
+Si l'itérateur ne supporte pas la suppression, alors cette méthode renvoi une `UnsupportedOperationException`.
+
+**Implanter la méthode remove de l'itérateur.**
+
+On implante la méthode `remove()`:
+```java
+@Override
+public Iterator<Integer> neighborIterator(int src) {
+  Objects.checkIndex(src, nodeCount);
+  return new Iterator<>() {
+    private int counter;
+    private int last = -1;
+
+    @Override
+    public boolean hasNext() {
+      for (; counter < nodeCount; counter++) {
+        if (getWeight(src, counter).isPresent()) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    @Override
+    public Integer next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+
+      last = counter;
+      return counter++;
+    }
+
+    @Override
+    public void remove() {
+      if (last == -1 || graph[src * nodeCount + last] == null) {
+        throw new IllegalStateException();
+      }
+
+      graph[src * nodeCount + last] = null;
+    }
+  };
+}
+```
+
+
