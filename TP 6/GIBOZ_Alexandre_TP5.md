@@ -28,10 +28,8 @@ public final class MatrixGraph<T> implements Graph<T> {
   private final T[] graph;
   private final int nodeCount;
 
-   public MatrixGraph(int nodeCount) {
-      if (nodeCount < 0) {
-         throw new IllegalArgumentException();
-      }
+   MatrixGraph(int nodeCount) {
+      if (nodeCount < 0) { throw new IllegalArgumentException(); }
 
       @SuppressWarnings("unchecked") // Réduction de porté à la variable locale 
       T[] graph = (T[]) new Object[nodeCount * nodeCount];
@@ -41,7 +39,7 @@ public final class MatrixGraph<T> implements Graph<T> {
    }
    
 //  @SuppressWarnings("unchecked")
-//  public MatrixGraph(int capacity) {
+//  MatrixGraph(int capacity) {
 //    if (capacity < 0) {
 //      throw new IllegalArgumentException();
 //    }
