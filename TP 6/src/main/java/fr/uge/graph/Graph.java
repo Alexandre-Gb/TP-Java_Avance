@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * An oriented graph with values on edges and not on nodes.
@@ -103,7 +104,14 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @param weight the weight associated to the edge.
    * @param <T> the type of the weight
    */
-  // Edge
+  record Edge<T>(int src, int dst, T weight) {
+    public Edge {
+      Objects.requireNonNull(weight);
+      if (src < 0 || dst < 0) {
+        throw new IllegalArgumentException();
+      }
+    }
+  }
 
   /**
    * Call the consumer for each edge associated to the source node.
@@ -113,7 +121,17 @@ public sealed interface Graph<T> permits MatrixGraph {
    * @throws NullPointerException if consumer is null.
    * @throws IndexOutOfBoundsException if src is not a valid index for a node.
    */
-  // forEachEdge(src, function)
+  default void forEachEdge(int src, Consumer<? super Edge<T>> function) {
+    Objects.requireNonNull(function);
+    Objects.checkIndex(src, nodeCount());
+
+    for (var dst = 0; dst < nodeCount(); dst++) {
+      var weight = getWeight(src, dst);
+      if (weight.isPresent()) {
+        function.accept(new Edge<>(src, dst, weight.get()));
+      }
+    }
+  }
 
   // Q9
 

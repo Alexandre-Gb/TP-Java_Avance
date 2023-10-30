@@ -311,4 +311,34 @@ public Iterator<Integer> neighborIterator(int src) {
 }
 ```
 
+8. **On souhaite ajouter une méthode forEachEdge qui prend en paramètre un index d'un nœud et une fonction qui est appel cette fonction avec chaque arc sortant de ce nœud.
+     Pour cela, nous allons, dans un premier temps, définir le type Graph.Edge à l'intérieur de l'interface Graph. 
+     Un Graph.Edge est définie par un entier src, un entier dst et un poids weight.
+     Écrire la méthode forEachEdge en utilisant la javadoc pour savoir quelle est la sémantique exacte.**
 
+On ajoute un record `Edge` dans l'interface `Graph`:
+```java
+record Edge<T>(int src, int dst, T weight) {
+  public Edge {
+    Objects.requireNonNull(weight);
+    if (src < 0 || dst < 0) {
+      throw new IllegalArgumentException();
+    }
+  }
+}
+```
+
+On ajoute à présent la méthode par défaut `forEachEdge`:
+```java
+default void forEachEdge(int src, Consumer<? super Edge<T>> function) {
+  Objects.requireNonNull(function);
+  Objects.checkIndex(src, nodeCount());
+  
+  for (var dst = 0; dst < nodeCount(); dst++) {
+    var weight = getWeight(src, dst);
+    if (weight.isPresent()) {
+      function.accept(new Edge<>(src, dst, weight.get()));
+    }
+  }
+}
+```

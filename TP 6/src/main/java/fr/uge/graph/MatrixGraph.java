@@ -4,12 +4,13 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 final class MatrixGraph<T> implements Graph<T> {
   private final T[] graph;
   private final int nodeCount;
 
-  public MatrixGraph(int nodeCount) {
+  MatrixGraph(int nodeCount) {
     if (nodeCount < 0) {
       throw new IllegalArgumentException();
     }
