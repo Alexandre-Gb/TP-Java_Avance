@@ -5,6 +5,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * An oriented graph with values on edges and not on nodes.
@@ -62,7 +64,6 @@ public sealed interface Graph<T> permits MatrixGraph, NodeMapGraph {
    * @throws NullPointerException     if either graph or merger is null.
    * @throws IllegalArgumentException if the graphs do not have the same number of nodes.
    */
-  // void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T, ? extends T> merger);
   default void mergeAll(Graph<? extends T> graph, BiFunction<? super T, ? super T, ? extends T> merger) {
     Objects.requireNonNull(graph);
     Objects.requireNonNull(merger);
@@ -133,20 +134,20 @@ public sealed interface Graph<T> permits MatrixGraph, NodeMapGraph {
     }
   }
 
-  // Q9
-
   /**
-   * Returns all the edges of the graph that have a value.
+   * Returns all the edges of the graph that have a value using mapmulti on stream.
    *
    * @return all the edges of the graph that have a value in any order.
    */
-/*  default Stream<Edge<T>> edges() {
+  default Stream<Edge<T>> edges() {
     return IntStream.range(0, nodeCount())
       .boxed()
-      .flatMap(src -> IntStream.range(0, nodeCount())
-        .mapToObj(dst -> new Edge<>(src, dst, getWeight(src, dst)))
-        .filter(edge -> edge.weight().isPresent()));
-  }*/
+      .flatMap(src -> {
+        var stream = Stream.<Edge<T>>builder();
+        forEachEdge(src, stream::add);
+        return stream.build();
+      });
+  }
 
   /**
    * Create a graph implementation based on a node map.

@@ -648,7 +648,6 @@ public class GraphTest {
   }
 
 
-  /*
   @Nested
   public class Q9 {
     @ParameterizedTest
@@ -716,5 +715,4 @@ public class GraphTest {
               .noneMatch(m -> m.accessFlags().contains(AccessFlag.ABSTRACT)));
     }
   }
-   */
 }

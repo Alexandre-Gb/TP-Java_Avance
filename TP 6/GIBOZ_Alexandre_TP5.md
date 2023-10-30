@@ -345,7 +345,18 @@ default void forEachEdge(int src, Consumer<? super Edge<T>> function) {
    L'idée ici n'est pas de réimplanter son propre stream (c'est prévu dans la suite du cours) mais de créer un stream sur tous les nœuds (sous forme d'entier) puis pour chaque nœud de renvoyer tous les arcs en réutilisant la méthode forEachEdge que l'on vient d'écrire.
    Écrire la méthode edges en utilisant la javadoc pour savoir quelle est la sémantique exacte.**
 
----
+On implante la méthode `edges`:
+```java
+  default Stream<Edge<T>> edges() {
+    return IntStream.range(0, nodeCount())
+      .boxed()
+      .flatMap(src -> {
+        var stream = Stream.<Edge<T>>builder();
+        forEachEdge(src, stream::add);
+        return stream.build();
+      });
+  }
+```
 
 <br>
 
