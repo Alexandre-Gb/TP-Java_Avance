@@ -11,9 +11,7 @@ final class MatrixGraph<T> implements Graph<T> {
   private final int nodeCount;
 
   MatrixGraph(int nodeCount) {
-    if (nodeCount < 0) {
-      throw new IllegalArgumentException();
-    }
+    if (nodeCount < 0) { throw new IllegalArgumentException(); }
 
     @SuppressWarnings("unchecked")
     T[] graph = (T[]) new Object[nodeCount * nodeCount];

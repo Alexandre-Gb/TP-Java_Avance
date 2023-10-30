@@ -340,3 +340,75 @@ default void forEachEdge(int src, Consumer<? super Edge<T>> function) {
   }
 }
 ```
+
+9. **Enfin, on souhaite écrire une méthode edges qui renvoie tous les arcs du graphe sous forme d'un stream.
+   L'idée ici n'est pas de réimplanter son propre stream (c'est prévu dans la suite du cours) mais de créer un stream sur tous les nœuds (sous forme d'entier) puis pour chaque nœud de renvoyer tous les arcs en réutilisant la méthode forEachEdge que l'on vient d'écrire.
+   Écrire la méthode edges en utilisant la javadoc pour savoir quelle est la sémantique exacte.**
+
+---
+
+<br>
+
+## Exercice 3 - NodeMapGraph
+
+On souhaite fournir une implantation de l'interface Graph par table de hachage qui pour chaque nœud permet de stocker l'ensemble des arcs sortant. 
+Pour un nœud donné, on utilise une table de hachage qui a un nœud destination associe le poids de l'arc. 
+Si un nœud destination n'est pas dans la table de hachage cela veut dire qu'il n'y a pas d'arc entre le nœud source et le nœud destination.
+Le graphe est représenté par un tableau dont chaque case correspond à un nœud, donc chaque case contient une table de hachage qui associe à un nœud destination le poids de l'arc correspondant.
+
+Les tests unitaires sont les mêmes que précédemment car NodeMapGraph est une autre implantation de l'interface Graph, il suffit de dé-commenter la méthode référence dans graphFactoryProvider.
+
+1. **Écrire dans l'interface Graph la méthode createNodeMapGraph et implanter la classe NodeMapGraph (toujours non publique).**
+
+On commence par modifier l'interface `Graph`:
+```java
+public sealed interface Graph<T> permits MatrixGraph, NodeMapGraph {
+  // ...
+  static <T> Graph<T> createNodeMapGraph(int nodeCount) {
+    return new NodeMapGraph<>(nodeCount);
+  }
+}
+```
+
+On crée à présent la classe `NodeMapGraph`:
+```java
+public final class NodeMapGraph<T> implements Graph<T> {
+   private final int nodeCount;
+   private final HashMap<Integer, T>[] map;
+
+   NodeMapGraph(int nodeCount) {
+      if (nodeCount < 0) { throw new IllegalArgumentException(); }
+
+      @SuppressWarnings("unchecked")
+      var map = (HashMap<Integer, T>[]) new HashMap<?, ?>[nodeCount];
+      this.map = map;
+      this.nodeCount = nodeCount;
+   }
+
+   @Override
+   public int nodeCount() {
+      return nodeCount;
+   }
+
+   @Override
+   public void addEdge(int src, int dst, T weight) {
+      Objects.requireNonNull(weight);
+      Objects.checkIndex(src, nodeCount);
+      Objects.checkIndex(dst, nodeCount);
+      map[src].put(dst, weight);
+   }
+
+   @Override
+   public Optional<T> getWeight(int src, int dst) {
+      Objects.checkIndex(src, nodeCount);
+      Objects.checkIndex(dst, nodeCount);
+      return Optional.ofNullable(map[src].get(dst));
+   }
+
+   @Override
+   public Iterator<Integer> neighborIterator(int src) {
+      Objects.checkIndex(src, nodeCount);
+      return map[src].keySet().iterator();
+   }
+}
+```
