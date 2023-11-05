@@ -55,3 +55,18 @@ final class SeqImpl<T> implements Seq<T> {
   }
 }
 ```
+
+2. **On souhaite écrire une méthode d'affichage permettant d'afficher les valeurs d'un Seq séparées par des virgules (suivies d'un espace), l'ensemble des valeurs étant encadré par des chevrons ('<' et '>').**
+
+On redéfinit la méthode `toString` dans l'implémentation:
+```java
+  @Override
+public String toString() {
+  var stringJoiner = new StringJoiner(", ", "<", ">");
+  for (var element : elements) {
+    stringJoiner.add(element.toString());
+  }
+  
+  return stringJoiner.toString();
+}
+```

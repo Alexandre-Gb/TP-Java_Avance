@@ -2,6 +2,7 @@ package fr.uge.seq;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.StringJoiner;
 
 final class SeqImpl<T> implements Seq<T> {
   private final List<T> elements;
@@ -21,5 +22,15 @@ final class SeqImpl<T> implements Seq<T> {
   public T get(int index) {
     Objects.checkIndex(index, size());
     return elements.get(index);
+  }
+
+  @Override
+  public String toString() {
+    var stringJoiner = new StringJoiner(", ", "<", ">");
+    for (var element : elements) {
+      stringJoiner.add(element.toString());
+    }
+
+    return stringJoiner.toString();
   }
 }
