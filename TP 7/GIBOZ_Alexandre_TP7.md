@@ -60,13 +60,75 @@ final class SeqImpl<T> implements Seq<T> {
 
 On redéfinit la méthode `toString` dans l'implémentation:
 ```java
-  @Override
+@Override
 public String toString() {
-  var stringJoiner = new StringJoiner(", ", "<", ">");
-  for (var element : elements) {
-    stringJoiner.add(element.toString());
+  //    var stringJoiner = new StringJoiner(", ", "<", ">");
+  //    for (var element : elements) {
+  //      stringJoiner.add(element.toString());
+  //    }
+  //    return stringJoiner.toString();
+
+  return elements.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(", ", "<", ">"));
+}
+```
+
+3. **On souhaite écrire une méthode map qui prend en paramètre une fonction à appliquer à chaque élément d'un Seq pour créer un nouveau Seq. On souhaite avoir une implantation paresseuse, c'est-à-dire une implantation qui ne fait pas de calcul si ce n'est pas nécessaire. Par exemple, tant que personne n'accède à un élément du nouveau Seq il n'est pas nécessaire d'appliquer la fonction. L'idée est de stoker les anciens éléments ainsi que la fonction et de l'appliquer seulement si c'est nécessaire.
+   Bien sûr, cela va nous obliger à changer l'implantation déjà existante de SeqImpl car maintenant tous les Seq vont stocker une liste d'éléments ainsi qu'une fonction de transformation (de mapping).
+   Avant de se lancer dans l'implantation de map, quelle doit être sa signature ?**
+
+On ajoute la méthode abstraite à l'interface `Seq`:
+```java
+public sealed interface Seq<T> permits SeqImpl {
+  static <T> Seq<T> from(List<? extends T> list) {
+    Objects.requireNonNull(list);
+    // return new SeqImpl<T, T>(list, Function.identity());
+    return new SeqImpl<>(list, Function.identity());
   }
-  
-  return stringJoiner.toString();
+   
+  // ...
+
+  <U> Seq<U> map(Function<? super T, ? extends U> function);
+}
+```
+
+On modifie ensuite l'implémentation:
+```java
+final class SeqImpl<T, U> implements Seq<T> {
+  private final List<U> elements;
+  private final Function<? super U, ? extends T> mapper;
+
+  SeqImpl(List<? extends U> elements, Function<? super U, ? extends T> mapper) {
+    this.elements = List.copyOf(elements);
+    this.mapper = mapper;
+  }
+
+  @Override
+  public int size() {
+    return elements.size();
+  }
+
+  @Override
+  public T get(int index) {
+    Objects.checkIndex(index, size());
+    return mapper.apply(elements.get(index));
+  }
+
+  @Override
+  public <E> Seq<E> map(Function<? super T, ? extends E> mapper) {
+    Objects.requireNonNull(mapper);
+
+    // return new SeqImpl<E, U>(elements, this.mapper.andThen(mapper));
+    return new SeqImpl<>(elements, this.mapper.andThen(mapper));
+  }
+
+  @Override
+  public String toString() {
+    return elements.stream()
+            .map(mapper)
+            .map(Objects::toString)
+            .collect(Collectors.joining(", ", "<", ">"));
+  }
 }
 ```

@@ -2,15 +2,16 @@ package fr.uge.seq;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-final class SeqImpl<T> implements Seq<T> {
-  private final List<T> elements;
+final class SeqImpl<T, U> implements Seq<T> {
+  private final List<U> elements;
+  private final Function<? super U, ? extends T> mapper;
 
-  SeqImpl(List<T> elements) {
-    // Objects.requireNonNull(elements); Not mandatory as it is an implementation
-    // this.elements = List.copyOf(elements); Not mandatory as it is an implementation and we always make a defensive copy
-    this.elements = elements;
+  SeqImpl(List<? extends U> elements, Function<? super U, ? extends T> mapper) {
+    this.elements = List.copyOf(elements);
+    this.mapper = mapper;
   }
 
   @Override
@@ -21,16 +22,21 @@ final class SeqImpl<T> implements Seq<T> {
   @Override
   public T get(int index) {
     Objects.checkIndex(index, size());
-    return elements.get(index);
+    return mapper.apply(elements.get(index));
+  }
+
+  @Override
+  public <E> Seq<E> map(Function<? super T, ? extends E> mapper) {
+    Objects.requireNonNull(mapper);
+
+    return new SeqImpl<>(elements, this.mapper.andThen(mapper));
   }
 
   @Override
   public String toString() {
-    var stringJoiner = new StringJoiner(", ", "<", ">");
-    for (var element : elements) {
-      stringJoiner.add(element.toString());
-    }
-
-    return stringJoiner.toString();
+    return elements.stream()
+            .map(mapper)
+            .map(Objects::toString)
+            .collect(Collectors.joining(", ", "<", ">"));
   }
 }
