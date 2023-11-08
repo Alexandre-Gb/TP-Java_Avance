@@ -245,3 +245,14 @@ final class SeqImpl<T, U> implements Seq<T> {
   // ...
 }
 ```
+
+6. **On souhaite ajouter une méthode of à l'interface Seq permettant d'initialiser un Seq à partir de valeurs séparées par des virgules.**
+
+On ajoute la méthode statique dans l'interface:
+```java
+@SafeVarargs
+static <T> Seq<T> of(T... elements) {
+  Objects.requireNonNull(elements);
+  return new SeqImpl<>(Arrays.asList(elements), Function.identity());
+}
+```
