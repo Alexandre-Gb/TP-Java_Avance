@@ -256,3 +256,33 @@ static <T> Seq<T> of(T... elements) {
   return new SeqImpl<>(Arrays.asList(elements), Function.identity());
 }
 ```
+
+7. **On souhaite faire en sorte que l'on puisse utiliser la boucle for-each-in sur un Seq.**
+
+On modifie l'interface pour qu'elle extends Iterable, puis on implante la méthode par defaut "iterator()":
+```java
+public interface Seq<T> extends Iterable<T> {
+  // ...
+
+  default Iterator<T> iterator() {
+    return new Iterator<>() {
+      private int i;
+      @Override
+      public boolean hasNext() {
+        return i < size();
+      }
+
+      @Override
+      public T next() {
+        if (!hasNext()) {
+          throw new NoSuchElementException();
+        }
+
+        return get(i++);
+      }
+    };
+  }
+
+  // ...
+}
+```
