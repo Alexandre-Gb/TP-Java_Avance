@@ -2,6 +2,7 @@ package fr.uge.seq;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,15 @@ final class SeqImpl<T, U> implements Seq<T> {
   public T get(int index) {
     Objects.checkIndex(index, size());
     return mapper.apply(elements.get(index));
+  }
+
+  @Override
+  public Optional<T> findFirst() {
+    if (size() == 0) {
+      return Optional.empty();
+    }
+
+    return Optional.of(get(0)); // Will map automatically
   }
 
   @Override

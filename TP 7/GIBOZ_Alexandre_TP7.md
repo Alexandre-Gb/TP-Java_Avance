@@ -132,3 +132,37 @@ final class SeqImpl<T, U> implements Seq<T> {
   }
 }
 ```
+
+4. **On souhaite avoir une méthode findFirst qui renvoie le premier élément du Seq si celui-ci existe.
+   Quel doit être le type de retour ?**
+
+La méthode devra renvoyer un Optional<T>.
+
+**Déclarer la méthode findFirst dans l'interface et implanter celle-ci dans la classe SeqImpl.**
+
+Interface `Seq`:
+```java
+public sealed interface Seq<T> permits SeqImpl {
+  // ...
+
+  Optional<T> findFirst();
+}
+```
+
+Classe `SeqImpl`
+```java
+final class SeqImpl<T, U> implements Seq<T> {
+  // ...
+
+  @Override
+  public Optional<T> findFirst() {
+    if (size() == 0) {
+      return Optional.empty();
+    }
+
+    return Optional.of(get(0)); // Will map automatically
+  }
+  
+  // ...
+}
+```
