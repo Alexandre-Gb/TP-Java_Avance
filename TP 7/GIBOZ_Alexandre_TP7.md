@@ -166,3 +166,82 @@ final class SeqImpl<T, U> implements Seq<T> {
   // ...
 }
 ```
+
+5. **On souhaite implanter la méthode stream() qui renvoie un Stream des éléments du Seq. 
+     Pour cela, on va commencer par implanter un Spliterator. 
+     Ici, on a deux façon d'implanter le Spliterator : soit on utilise le Spliterator de la liste sous-jacente, soit on utilise des indices. 
+     Expliquer dans quel cas on utilise l'un ou l'autre, sachant que nos données sont stockées dans une List.**
+
+On utilise le Spliterator de la liste sous-jacente lorsque celle-ci est déjà implémentée et que l'on souhaite utiliser ses fonctionnalités, et on utilise des indices lorsque l'on souhaite implémenter nous-même le Spliterator.
+
+**Ensuite, on peut créer la classe correspondant au Spliterator à deux endroits : soit comme une classe interne de la classe SeqImpl, soit comme une classe anonyme d'une méthode spliterator(start, end), quelle est à votre avis le meilleur endroit ?
+Écrire les 4 méthodes du Spliterator.**
+
+La meilleure option semble être la classe anonyme dans la méthode spliterator(start, end) car elle n'est utilisée que dans cette méthode.
+
+**Écrire les 4 méthodes du Spliterator.**
+
+```java
+  private Spliterator<T> spliterator(int start, int end) {
+    return new Spliterator<>() {
+      private int i = start;
+      @Override
+      public boolean tryAdvance(Consumer<? super T> action) {
+        Objects.requireNonNull(action);
+        if (i < end) {
+          action.accept(get(i++));
+          return true;
+        }
+
+        return false;
+      }
+
+      @Override
+      public Spliterator<T> trySplit() {
+        var middle = (i + end) >>> 1;
+        if (middle == i) {
+          return null;
+        }
+
+        var spliterator = spliterator(i, middle);
+        i = middle;
+        return spliterator;
+      }
+
+      @Override
+      public long estimateSize() {
+        return end - 1;
+      }
+
+      @Override
+      public int characteristics() {
+        return IMMUTABLE | ORDERED;
+      }
+    };
+  }
+```
+
+**Puis déclarer la méthode stream dans l'interface et implanter celle-ci dans SeqImpl sachant qu'il existe la méthode StreamSupport.stream qui permet de créer un Stream à partir de ce Spliterator.**
+
+Interface `Seq`:
+```java
+public sealed interface Seq<T> permits SeqImpl {
+  // ...
+
+  Stream<T> stream();
+}
+```
+
+Classe `SeqImpl`:
+```java
+final class SeqImpl<T, U> implements Seq<T> {
+  // ...
+
+  @Override
+  public Stream<T> stream() {
+    return StreamSupport.stream(spliterator(0, size()), false);
+  }
+
+  // ...
+}
+```

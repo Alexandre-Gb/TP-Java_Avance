@@ -3,8 +3,12 @@ package fr.uge.seq;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 final class SeqImpl<T, U> implements Seq<T> {
   private final List<U> elements;
@@ -33,6 +37,49 @@ final class SeqImpl<T, U> implements Seq<T> {
     }
 
     return Optional.of(get(0)); // Will map automatically
+  }
+
+  @Override
+  public Stream<T> stream() {
+    return StreamSupport.stream(spliterator(0, size()), false);
+  }
+
+  private Spliterator<T> spliterator(int start, int end) {
+    return new Spliterator<>() {
+      private int i = start;
+      @Override
+      public boolean tryAdvance(Consumer<? super T> action) {
+        Objects.requireNonNull(action);
+        if (i < end) {
+          action.accept(get(i++));
+          return true;
+        }
+
+        return false;
+      }
+
+      @Override
+      public Spliterator<T> trySplit() {
+        var middle = (i + end) >>> 1;
+        if (middle == i) {
+          return null;
+        }
+
+        var spliterator = spliterator(i, middle);
+        i = middle;
+        return spliterator;
+      }
+
+      @Override
+      public long estimateSize() {
+        return end - 1;
+      }
+
+      @Override
+      public int characteristics() {
+        return IMMUTABLE | ORDERED;
+      }
+    };
   }
 
   @Override

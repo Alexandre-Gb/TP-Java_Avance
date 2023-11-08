@@ -340,7 +340,6 @@ public class SeqTest {
   }
 
 
-  /*
   @Nested
   public class Q5  {
     @Test
@@ -487,6 +486,7 @@ public class SeqTest {
   }
 
 
+  /*
   @Nested
   public class Q6  {
     @Test
