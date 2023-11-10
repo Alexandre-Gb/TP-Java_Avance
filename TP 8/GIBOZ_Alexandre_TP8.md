@@ -75,3 +75,16 @@ public sealed interface Query<T> permits Query.QueryImpl {
   }
 }
 ```
+
+3. **On souhaite maintenant ajouter une méthode toStream qui renvoie un Stream des éléments présents dans une Query.
+   Note : ici, on ne vous demande pas de créer un Spliterator, il existe déjà une méthode stream() sur l'interface List.
+   Écrire la méthode toStream.**
+
+On définit la méthode `toStream`:
+```java
+@Override
+public Stream<U> toStream() {
+  return elements.stream()
+        .flatMap(e -> mapper.apply(e).stream());
+}
+```

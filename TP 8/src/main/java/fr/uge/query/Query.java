@@ -2,6 +2,7 @@ package fr.uge.query;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public sealed interface Query<T> permits Query.QueryImpl {
   static <T, U> Query<U> fromList(List<T> list, Function<? super T, Optional<? extends U>> mapper) {
@@ -12,6 +13,8 @@ public sealed interface Query<T> permits Query.QueryImpl {
   }
 
   List<T> toList();
+
+  Stream<T> toStream();
 
   final class QueryImpl<T, U> implements Query<U> {
     private final List<T> elements;
@@ -28,6 +31,12 @@ public sealed interface Query<T> permits Query.QueryImpl {
       elements.forEach(e -> mapper.apply(e).ifPresent(list::add));
 
       return List.copyOf(list);
+    }
+
+    @Override
+    public Stream<U> toStream() {
+      return elements.stream()
+              .flatMap(e -> mapper.apply(e).stream());
     }
 
     @Override
