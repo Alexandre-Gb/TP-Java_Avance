@@ -210,7 +210,7 @@ La meilleure option semble être la classe anonyme dans la méthode spliterator(
 
       @Override
       public long estimateSize() {
-        return end - 1;
+        return end - i;
       }
 
       @Override

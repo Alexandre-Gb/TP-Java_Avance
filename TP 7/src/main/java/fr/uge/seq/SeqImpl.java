@@ -72,7 +72,7 @@ final class SeqImpl<T, U> implements Seq<T> {
 
       @Override
       public long estimateSize() {
-        return end - 1;
+        return end - i;
       }
 
       @Override
