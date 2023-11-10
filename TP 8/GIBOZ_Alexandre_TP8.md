@@ -51,3 +51,27 @@ public sealed interface Query<T> permits Query.QueryImpl {
   }
 }
 ```
+
+2. **On souhaite ajouter une méthode toList à l'interface Query dont le but est de renvoyer dans une liste non-modifiable les éléments présents.
+   Écrire la méthode toList.**
+
+On modifie l'interface `Query` :
+```java
+public sealed interface Query<T> permits Query.QueryImpl {
+  // ...
+  
+  List<T> toList();
+  
+  final class QueryImpl<T, U> implements Query<U> {
+    // ...
+    
+    @Override
+    public List<U> toList() {
+      var list = new ArrayList<U>();
+      elements.forEach(e -> mapper.apply(e).ifPresent(list::add));
+      
+      return List.copyOf(list);
+    }
+  }
+}
+```

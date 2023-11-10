@@ -11,6 +11,8 @@ public sealed interface Query<T> permits Query.QueryImpl {
     return new QueryImpl<>(Collections.unmodifiableList(list), mapper); // UnmodifiableList for initial null values
   }
 
+  List<T> toList();
+
   final class QueryImpl<T, U> implements Query<U> {
     private final List<T> elements;
     private final Function<? super T, Optional<? extends U>> mapper;
@@ -18,6 +20,14 @@ public sealed interface Query<T> permits Query.QueryImpl {
     QueryImpl(List<T> elements, Function<? super T, Optional<? extends U>> mapper) {
       this.elements = elements;
       this.mapper = mapper;
+    }
+
+    @Override
+    public List<U> toList() {
+      var list = new ArrayList<U>();
+      elements.forEach(e -> mapper.apply(e).ifPresent(list::add));
+
+      return List.copyOf(list);
     }
 
     @Override
