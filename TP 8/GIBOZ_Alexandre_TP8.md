@@ -88,3 +88,49 @@ public Stream<U> toStream() {
         .flatMap(e -> mapper.apply(e).stream());
 }
 ```
+
+4. **On souhaite ajouter une méthode toLazyList qui renvoie une liste non-modifiable dont les éléments sont calculés dans une liste modifiable sous-jacente uniquement si on demande la taille et/ou les éléments de la liste.
+   Note : il existe une classe java.util.AbstractList qui peut vous servir de base pour implanter la liste paresseuse demandée.
+   Attention : vous veillerez à ne pas demander plusieurs fois si un même élément est présent, une seule fois devrait suffire.
+   Écrire la méthode toLazyList.**
+
+On définit la métode `toLazyList`:
+```java
+@Override
+public List<U> toLazyList() {
+  return new AbstractList<>() {
+    private final Iterator<T> iterator = elements.iterator();
+    private final List<U> cache = new ArrayList<>();
+    
+    @Override
+    public U get(int index) {
+      Objects.checkIndex(index, elements.size());
+      if (index < cache.size()) {
+        return cache.get(index);
+      }
+      
+      while (iterator.hasNext()) {
+        var optional = mapper.apply(iterator.next());
+        if (optional.isPresent()) {
+          cache.add(optional.get());
+          if (index == cache.size() - 1) {
+            return optional.get();
+          }
+        }
+      }
+      
+      throw new ArrayIndexOutOfBoundsException();
+    }
+    
+    @Override
+    public int size() {
+      while (iterator.hasNext()) {
+        var optional = mapper.apply(iterator.next());
+        optional.ifPresent(cache::add);
+      }
+      
+      return cache.size();
+    }
+  };
+}
+```

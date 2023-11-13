@@ -120,11 +120,11 @@ public class QueryTest {
       assertNotNull(query);
     }
 
-//    @Test
-//    public void signature2() {
-//      Query<Object> query = Query.fromList(List.of(Optional.of("hello")), UnaryOperator.<Optional<CharSequence>>identity());
-//      assertNotNull(query);
-//    }
+    @Test
+    public void signature2() {
+      Query<Object> query = Query.fromList(List.of(Optional.of("hello")), UnaryOperator.<Optional<CharSequence>>identity());
+      assertNotNull(query);
+    }
 
     @Test
     public void isAnInterface() {
@@ -394,7 +394,6 @@ public class QueryTest {
   }
 
 
-  /*
   @Nested
   class Q4 {
     @Test
@@ -592,6 +591,7 @@ public class QueryTest {
   }
 
 
+  /*
   @Nested
   class Q5 {
     @Test
