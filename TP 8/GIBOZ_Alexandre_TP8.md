@@ -225,8 +225,6 @@ public sealed interface Query<T> permits Query.QueryImpl {
        Objects.requireNonNull(predicate);
        return new QueryImpl<>(elements, mapper.andThen(o -> o.filter(predicate)));
     }
-    
-    // ...
   }
 }
 ```
@@ -238,8 +236,8 @@ On créé la méthode `map`:
 ```java
 public sealed interface Query<T> permits Query.QueryImpl {
   // ...
-
-  <U> Query<U> map(Function<? super T, ? extends U> function);
+  
+  <U> U reduce(U identity, BiFunction<U, ? super T, U> biFunction);
 
   final class QueryImpl<T, U> implements Query<U> {
     // ...
@@ -249,8 +247,38 @@ public sealed interface Query<T> permits Query.QueryImpl {
       Objects.requireNonNull(function);
       return new QueryImpl<>(elements, this.mapper.andThen(o -> o.map(function)));
     }
-    
+  }
+}
+```
+
+8. **Enfin, on souhaite écrire une méthode reduce sur une Query qui marche de la même façon que la méthode reduce à trois paramètres sur un Stream et sachant que comme notre Query n'a pas d'implantation parallel, le troisième paramètre est superflu.
+   Écrire la méthode reduce.**
+
+
+On créé la méthode `reduce`:
+```java
+public sealed interface Query<T> permits Query.QueryImpl {
+  // ...
+
+  <U> Query<U> map(Function<? super T, ? extends U> function);
+
+  final class QueryImpl<T, U> implements Query<U> {
     // ...
+
+    @Override
+    public <V> V reduce(V identity, BiFunction<V, ? super U, V> biFunction) {
+       Objects.requireNonNull(biFunction);
+
+       var result = identity;
+       for (var element : elements) {
+          var optional = mapper.apply(element);
+          if (optional.isPresent()) {
+             result = biFunction.apply(result, optional.get());
+          }
+       }
+
+       return result;
+    }
   }
 }
 ```

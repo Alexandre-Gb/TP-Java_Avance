@@ -1,6 +1,7 @@
 package fr.uge.query;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -28,6 +29,8 @@ public sealed interface Query<T> permits Query.QueryImpl {
   Query<T> filter(Predicate<? super T> predicate);
 
   <U> Query<U> map(Function<? super T,? extends U> function);
+
+  <U> U reduce(U identity, BiFunction<U, ? super T, U> biFunction);
 
   final class QueryImpl<T, U> implements Query<U> {
     private final Iterable<? extends T> elements;
@@ -91,13 +94,30 @@ public sealed interface Query<T> permits Query.QueryImpl {
     @Override
     public Query<U> filter(Predicate<? super U> predicate) {
       Objects.requireNonNull(predicate);
+
       return new QueryImpl<>(elements, mapper.andThen(o -> o.filter(predicate)));
     }
 
     @Override
     public <V> Query<V> map(Function<? super U,? extends V> function) {
       Objects.requireNonNull(function);
+
       return new QueryImpl<>(elements, this.mapper.andThen(o -> o.map(function)));
+    }
+
+    @Override
+    public <V> V reduce(V identity, BiFunction<V, ? super U, V> biFunction) {
+      Objects.requireNonNull(biFunction);
+
+      var result = identity;
+      for (var element : elements) {
+        var optional = mapper.apply(element);
+        if (optional.isPresent()) {
+          result = biFunction.apply(result, optional.get());
+        }
+      }
+
+      return result;
     }
 
     @Override
