@@ -591,7 +591,6 @@ public class QueryTest {
   }
 
 
-  /*
   @Nested
   class Q5 {
     @Test
@@ -832,6 +831,8 @@ public class QueryTest {
     }
   }
 
+
+  /*
   @Nested
   class Q8 {
 

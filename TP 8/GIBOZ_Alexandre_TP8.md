@@ -134,3 +134,123 @@ public List<U> toLazyList() {
   };
 }
 ```
+
+5. **On souhaite pouvoir créer une Query en utilisant une nouvelle méthode fromIterable qui prend un Iterable en paramètre. Dans ce cas, tous les éléments de l'Iterable sont considérés comme présents.
+   Note : une java.util.List est un Iterable et Iterable possède une méthode spliterator().
+   Écrire la méthode fromIterable et modifier le code des méthodes existantes si nécessaire.**
+
+On obtient le résultat suivant:
+```java
+public sealed interface Query<T> permits Query.QueryImpl {
+  // ...
+
+  static <T> Query<T> fromIterable(Iterable<? extends T> iterable) {
+    Objects.requireNonNull(iterable);
+    return new QueryImpl<>(iterable, Optional::of);
+  }
+
+  final class QueryImpl<T, U> implements Query<U> {
+     private final Iterable<? extends T> elements;
+     private final Function<? super T,? extends Optional<? extends U>> mapper;
+
+     QueryImpl(Iterable<? extends T> elements, Function<? super T,? extends Optional<? extends U>> mapper) {
+        this.elements = elements;
+        this.mapper = mapper;
+     }
+     
+     // ...
+
+     @Override
+     public List<U> toLazyList() {
+        return new AbstractList<>() {
+           private final Iterator<? extends T> iterator = elements.iterator();
+           private final List<U> cache = new ArrayList<>();
+           @Override
+           public U get(int index) {
+              if (index < cache.size()) {
+                 return cache.get(index);
+              }
+
+              while (iterator.hasNext()) {
+                 var optional = mapper.apply(iterator.next());
+                 if (optional.isPresent()) {
+                    cache.add(optional.get());
+                    if (index == cache.size() - 1) {
+                       return optional.get();
+                    }
+                 }
+              }
+
+              throw new ArrayIndexOutOfBoundsException();
+           }
+
+           @Override
+           public int size() {
+              while (iterator.hasNext()) {
+                 var optional = mapper.apply(iterator.next());
+                 optional.ifPresent(cache::add);
+              }
+
+              return cache.size();
+           }
+        };
+     }
+
+     @Override
+     public Stream<U> toStream() {
+        return StreamSupport.stream(elements.spliterator(), false)
+                .flatMap(e -> mapper.apply(e).stream());
+     }
+     
+     // ...
+  }
+}
+```
+
+6. **On souhaite écrire une méthode filter qui permet de sélectionner uniquement les éléments pour lesquels un appel à la fonction prise en paramètre de filter renvoie vrai.
+   Écrire la méthode filter.**
+
+On créé la méthode `filter`:
+```java
+public sealed interface Query<T> permits Query.QueryImpl {
+  // ...
+  
+  <U> Query<U> map(Function<? super T,? extends U> function);
+
+  final class QueryImpl<T, U> implements Query<U> {
+    // ...
+
+    @Override
+    public Query<U> filter(Predicate<? super U> predicate) {
+       Objects.requireNonNull(predicate);
+       return new QueryImpl<>(elements, mapper.andThen(o -> o.filter(predicate)));
+    }
+    
+    // ...
+  }
+}
+```
+
+7. **On souhaite écrire une méthode map qui renvoie une Query telle que chaque élément est obtenu en appelant la fonction prise en paramètre de la méthode map sur un élément d'une Query d'origine.
+   Écrire la méthode map.**
+
+On créé la méthode `map`:
+```java
+public sealed interface Query<T> permits Query.QueryImpl {
+  // ...
+
+  <U> Query<U> map(Function<? super T, ? extends U> function);
+
+  final class QueryImpl<T, U> implements Query<U> {
+    // ...
+     
+    @Override
+    public <V> Query<V> map(Function<? super U, ? extends V> function) {
+      Objects.requireNonNull(function);
+      return new QueryImpl<>(elements, this.mapper.andThen(o -> o.map(function)));
+    }
+    
+    // ...
+  }
+}
+```
