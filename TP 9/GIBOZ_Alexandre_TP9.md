@@ -141,3 +141,55 @@ public class NumericVec<T> {
   }
 }
 ```
+
+4. **On souhaite écrire une méthode stream() qui renvoie un stream des éléments du NumericVec dans l'ordre d'insertion. Pour cela, on va créer une classe implantant l'interface Spliterator. Puis on utilisera StreamSupport.stream() pour créer le Stream à partir du Spliterator.
+   Note : s'l y a moins de 1024 éléments, on n'essaiera pas de couper le Spliterator.
+   Écrire la méthode stream qui renvoie un Stream parallélisable.**
+
+Spliterator:
+```java
+public Stream<T> stream() {
+  return StreamSupport.stream(spliterator(0, size), false);
+}
+
+private Spliterator<T> spliterator(int start, int end) {
+  return new Spliterator<T>() {
+    private int i = start;
+
+    @Override
+    public boolean tryAdvance(Consumer<? super T> action) {
+      if (i < end) {
+        action.accept(from.apply(values[i++]));
+        return true;
+      }
+      return false;
+    }
+
+    @Override
+    public Spliterator<T> trySplit() {
+      if (size < 1024) {
+        return null;
+      }
+
+      var middle = (i + end) >>> 1;
+      if (middle == i) {
+        return null;
+      }
+
+      var split = spliterator(i, middle);
+      i = middle;
+      return split;
+    }
+
+    @Override
+    public long estimateSize() {
+      return end - i;
+    }
+
+    @Override
+    public int characteristics() {
+      return NONNULL | ORDERED | IMMUTABLE | SIZED;
+    }
+  };
+}
+```

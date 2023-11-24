@@ -2,8 +2,13 @@ package fr.uge.numeric;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.LongFunction;
 import java.util.function.ToLongFunction;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class NumericVec<T> {
   private long[] values;
@@ -31,12 +36,6 @@ public class NumericVec<T> {
 
   public static NumericVec<Double> doubles(double... values) {
     Objects.requireNonNull(values);
-
-/*    var array = new long[values.length];
-    for (int i = 0; i < values.length; i++) {
-      array[i] = Double.doubleToRawLongBits(values[i]);
-    }*/
-
     var array = Arrays.stream(values).mapToLong(Double::doubleToRawLongBits).toArray();
     return new NumericVec<>(array, Double::longBitsToDouble, Double::doubleToRawLongBits);
   }
@@ -52,6 +51,51 @@ public class NumericVec<T> {
 
     values[size] = into.applyAsLong(value);
     size++;
+  }
+
+  public Stream<T> stream() {
+    return StreamSupport.stream(spliterator(0, size), false);
+  }
+
+  private Spliterator<T> spliterator(int start, int end) {
+    return new Spliterator<T>() {
+      private int i = start;
+
+      @Override
+      public boolean tryAdvance(Consumer<? super T> action) {
+        if (i < end) {
+          action.accept(from.apply(values[i++]));
+          return true;
+        }
+        return false;
+      }
+
+      @Override
+      public Spliterator<T> trySplit() {
+        if (size < 1024) {
+          return null;
+        }
+
+        var middle = (i + end) >>> 1;
+        if (middle == i) {
+          return null;
+        }
+
+        var split = spliterator(i, middle);
+        i = middle;
+        return split;
+      }
+
+      @Override
+      public long estimateSize() {
+        return end - i;
+      }
+
+      @Override
+      public int characteristics() {
+        return NONNULL | ORDERED | IMMUTABLE | SIZED;
+      }
+    };
   }
 
   public T get(int index) {
