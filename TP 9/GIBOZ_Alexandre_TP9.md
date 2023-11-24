@@ -193,3 +193,37 @@ private Spliterator<T> spliterator(int start, int end) {
   };
 }
 ```
+
+5. **On souhaite qu'un NumericVec implante l'interface java.util.List.
+   Modifier le code pour que NumericVec soit une liste.**
+
+On fait en sorte que `NumericVec` extends `AbstractList`.
+À présent, la méthode `add` doit renvoyer une valeur booléenne, on renvoie donc `true` à chaque ajout d'un élément.
+De plus, on définit une méthode publique spliterator sans paramètres qui va fournir un spliterator avec les bonnes valeurs par défaut grâce à la méthode privée.
+
+```java
+public class NumericVec<T> extends AbstractList<T> {
+  // ...
+  
+  public boolean add(T value) {
+    Objects.requireNonNull(value);
+
+    if (size == 0) {
+      values = new long[1];
+    } else if (size >= values.length) {
+      values = Arrays.copyOf(values, size * 2);
+    }
+
+    values[size] = into.applyAsLong(value);
+    size++;
+    return true;
+  }
+
+  @Override
+  public Spliterator<T> spliterator() {
+    return spliterator(0, size);
+  }
+  
+  // ...
+}
+```

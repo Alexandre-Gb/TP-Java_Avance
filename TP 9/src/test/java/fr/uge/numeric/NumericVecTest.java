@@ -329,7 +329,6 @@ public class NumericVecTest {
   }
 
 
-  /*
   @Nested
   public class Q5 {
     @Test
@@ -506,6 +505,7 @@ public class NumericVecTest {
   }
 
 
+  /*
   @Nested
   public class Q6 {
     @Test

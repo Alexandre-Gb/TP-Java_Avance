@@ -1,5 +1,6 @@
 package fr.uge.numeric;
 
+import java.util.AbstractList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Spliterator;
@@ -10,7 +11,7 @@ import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-public class NumericVec<T> {
+public class NumericVec<T> extends AbstractList<T> {
   private long[] values;
   private final LongFunction<T> from;
   private final ToLongFunction<T> into;
@@ -40,7 +41,7 @@ public class NumericVec<T> {
     return new NumericVec<>(array, Double::longBitsToDouble, Double::doubleToRawLongBits);
   }
 
-  public void add(T value) {
+  public boolean add(T value) {
     Objects.requireNonNull(value);
 
     if (size == 0) {
@@ -51,14 +52,20 @@ public class NumericVec<T> {
 
     values[size] = into.applyAsLong(value);
     size++;
+    return true;
   }
 
   public Stream<T> stream() {
     return StreamSupport.stream(spliterator(0, size), false);
   }
 
+  @Override
+  public Spliterator<T> spliterator() {
+    return spliterator(0, size);
+  }
+
   private Spliterator<T> spliterator(int start, int end) {
-    return new Spliterator<T>() {
+    return new Spliterator<>() {
       private int i = start;
 
       @Override
