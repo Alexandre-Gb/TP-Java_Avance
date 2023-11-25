@@ -30,8 +30,6 @@ Dans ce mode d'insertion précis, et puisqu'il n'est pas prévu que l'on puisse 
 
 Classe `HashTableSet`:
 ```java
-package fr.uge.set;
-
 public final class HashTableSet {
   private record Entry(Object key, Entry next) { }
 }
@@ -40,12 +38,8 @@ public final class HashTableSet {
 
 2. **On souhaite maintenant ajouter un constructeur sans paramètre, une méthode add qui permet d'ajouter un élément non null et une méthode size qui renvoie le nombre d'éléments insérés (avec une complexité en O(1)).**
 
-On modifie la classe `HashTableSet` comme suit:
+On modifie la classe `HashTableSet` comme suit :
 ```java
-package fr.uge.set;
-
-import java.util.Objects;
-
 public final class HashTableSet {
   private final static int INIT_SIZE = 16;
   private final Entry[] entries = new Entry[INIT_SIZE];
@@ -76,7 +70,6 @@ public final class HashTableSet {
 
   private record Entry(Object key, Entry next) { }
 }
-}
 ```
 
 3. **On cherche maintenant à implanter une méthode forEach qui prend en paramètre une fonction. 
@@ -87,7 +80,7 @@ La functional interface devra prendre un Object en paramètre, et ne renverra ri
 
 **Quel est le nom de la classe du package java.util.function qui a une méthode ayant la même signature ?**
 
-Le nom de cette interface fonctionnelle est `Consumer`.
+Le nom de cette interface fonctionnelle est `Consumer<T>`.
 
 **Écrire la méthode forEach.**
 
