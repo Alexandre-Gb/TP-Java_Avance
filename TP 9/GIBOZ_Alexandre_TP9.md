@@ -268,3 +268,15 @@ public static <T> Collector<T, ?, NumericVec<T>> toNumericVec(Supplier<NumericVe
   return Collectors.toCollection(factory);
 }
 ```
+
+On peut également utiliser `Collector.of()`:
+```java
+public static <T> Collector<T, ?, NumericVec<T>> toNumericVec(Supplier<NumericVec<T>> factory) {
+  Objects.requireNonNull(factory);
+  
+  return Collector.of(factory, NumericVec::add, (first, second) -> {
+    first.addAll(second);
+    return first;
+  });
+}
+```

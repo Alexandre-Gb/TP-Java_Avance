@@ -46,7 +46,11 @@ public class NumericVec<T> extends AbstractList<T> {
   public static <T> Collector<T, ?, NumericVec<T>> toNumericVec(Supplier<NumericVec<T>> factory) {
     Objects.requireNonNull(factory);
 
-    return Collectors.toCollection(factory);
+    // return Collectors.toCollection(factory);
+    return Collector.of(factory, NumericVec::add, (first, second) -> {
+      first.addAll(second);
+      return first;
+    });
   }
 
   public boolean add(T value) {
