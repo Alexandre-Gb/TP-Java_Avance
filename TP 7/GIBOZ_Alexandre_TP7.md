@@ -245,7 +245,7 @@ On ajoute la méthode statique dans l'interface:
 @SafeVarargs
 static <T> Seq<T> of(T... elements) {
   Objects.requireNonNull(elements);
-  return new SeqImpl<>(Arrays.asList(elements), Function.identity());
+  return from(Arrays.asList(elements));
 }
 ```
 
@@ -279,3 +279,9 @@ public interface Seq<T> extends Iterable<T> {
   // ...
 }
 ```
+
+8. **À la question 5, on a vu comment cacher la déclaration d'une classe à l'intérieur d'une méthode, on peut faire la même chose avec la classe SeqImpl et déclarer l'implantation sous forme d'une classe anonyme à l'intérieur d'une méthode dans l'interface.
+   Quelle doit être la visibilité de la méthode contenant la déclaration de la classe anonyme d'implantation ?**
+
+La visibilité de la méthode doit être publique afin qu'un acteur externe au package puisse tout de même l'instancier de l'extérieur.
+Cependant, l'implantation doit rester privée afin qu'on ne puisse fournir un accès direct.

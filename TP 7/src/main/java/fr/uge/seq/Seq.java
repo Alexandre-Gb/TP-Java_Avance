@@ -7,13 +7,16 @@ import java.util.stream.Stream;
 public interface Seq<T> extends Iterable<T> {
   static <T> Seq<T> from(List<? extends T> list) {
     Objects.requireNonNull(list);
+
     return new SeqImpl<>(list, Function.identity());
   }
 
   @SafeVarargs
   static <T> Seq<T> of(T... elements) {
     Objects.requireNonNull(elements);
-    return new SeqImpl<>(Arrays.asList(elements), Function.identity());
+
+    // return new SeqImpl<>(Arrays.asList(elements), Function.identity());
+    return from(Arrays.asList(elements));
   }
 
   default Iterator<T> iterator() {

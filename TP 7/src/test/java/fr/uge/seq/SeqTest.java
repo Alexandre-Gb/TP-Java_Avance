@@ -801,8 +801,7 @@ public class SeqTest {
     }
   }
 
-  
-  /*
+
   @Nested
   public class Q8  {
     @Test
@@ -825,5 +824,5 @@ public class SeqTest {
     public void testNoPublicNestedClasses() {
       assertEquals(0, Seq.class.getClasses().length);
     }
-  }*/
+  }
 }
