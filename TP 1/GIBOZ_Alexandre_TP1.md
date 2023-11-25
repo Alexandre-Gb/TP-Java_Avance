@@ -70,10 +70,6 @@ Fichier `pom.xml` à la racine du projet:
 
 Fichier `VillagePeople.java`:
 ```java
-package fr.uge.ymca;
-
-import java.util.Objects;
-
 public record VillagePeople(String name, Kind kind) {
   public VillagePeople {
     Objects.requireNonNull(name);
@@ -89,8 +85,6 @@ public record VillagePeople(String name, Kind kind) {
 
 Fichier `Kind.java`:
 ```java
-package fr.uge.ymca;
-
 public enum Kind {
   COP, NATIVE, GI, BIKER, CONSTRUCTION, COWBOY, ADMIRAL, ATHLETE, GIGOLO, SAILOR
 }
@@ -100,11 +94,6 @@ public enum Kind {
 
 Fichier `House.java`:
 ```java
-package fr.uge.ymca;
-
-import java.util.ArrayList;
-import java.util.Objects;
-
 public class House {
   private final ArrayList<VillagePeople> people;
 
@@ -158,8 +147,6 @@ public String toString() {
 
 Les minions et les villagepeople seront mis en commun via une interface `Inmate`:
 ```java
-package fr.uge.ymca;
-
 public interface Inmate {
   String name();
 }
@@ -169,11 +156,7 @@ l'interface devra, plus tard, être scellée afin de n'autoriser l'implémentati
 
 Fichier `Minion.java`:
 ```java
-package fr.uge.ymca;
-
-import java.util.Objects;
-
-public record Minion(String name) {
+public record Minion(String name) implements Inmate {
   public Minion {
     Objects.requireNonNull(name);
   }
@@ -187,11 +170,7 @@ public record Minion(String name) {
 
 Fichier `VillagePeople.java`:
 ```java
-package fr.uge.ymca;
-
-import java.util.Objects;
-
-public record VillagePeople(String name, Kind kind) {
+public record VillagePeople(String name, Kind kind) implements Inmate {
   public VillagePeople {
     Objects.requireNonNull(name);
     Objects.requireNonNull(kind);
@@ -206,12 +185,6 @@ public record VillagePeople(String name, Kind kind) {
 
 Fichier `House.java`:
 ```java
-package fr.uge.ymca;
-
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 public final class House {
   private final ArrayList<Inmate> people;
 
@@ -244,8 +217,6 @@ public final class House {
 
 On ajoute une méthode abstraite `price()` dans l'interface `Inmate`, cette dernière allant être implémentée par chaque classe:
 ```java
-package fr.uge.ymca;
-
 public interface Inmate {
   String name();
   int price();
@@ -283,6 +254,8 @@ public double averagePrice() {
 On commente les méthodes `price()` des classes `Minion` et `VillagePeople` et on ajoute une méthode privée `price(Inmate)` dans la classe `House`:
 ```java
 private int price(Inmate person) {
+  Objects.requireNonNull(person);
+  
   return switch (person) {
     case Minion minion -> 1;
     case VillagePeople villagePeople -> 100;
@@ -311,14 +284,14 @@ public sealed interface Inmate permits Minion, VillagePeople {
 Fichier `Minion.java`:
 ```java
 public record Minion(String name) implements Inmate {
-    ...
+    // ...
 }
 ```
 
 Fichier `VillagePeople.java`:
 ```java
 public record VillagePeople(String name, Kind kind) implements Inmate {
-    ...
+    // ...
 }
 ```
 
@@ -331,15 +304,16 @@ public final class House {
   private final ArrayList<Inmate> people = new ArrayList<>();
   private final HashMap<Kind, Integer> discount = new HashMap<>();
 
-  ...
+  // ...
 }
 ```
 
 On modifie la méthode `price(Inmate)` pour qu'elle prenne en compte le discount pour les VillagePeople:
 ```java
 private double price(Inmate person) {
+  Objects.requireNonNull(person);
   return switch (person) {
-    case Minion minion -> 1;
+    case Minion ignored -> 1;
     case VillagePeople villagePeople -> {
       var kind = villagePeople.kind();
       if (discount.containsKey(kind)) {
@@ -363,7 +337,7 @@ public void addDiscount(Kind kind) {
 }
 ```
 
-Étant donné que l'on manipule à présent des valeurs à virgule flottante, on modifie la méthode `averagePrice()` pour qu'elle renvoie un `double`:
+Étant donné que l'on manipule à présent des valeurs à virgule, on modifie la méthode `averagePrice()` pour qu'elle renvoie un `double`:
 ```java
 public double averagePrice() {
   return people.stream()

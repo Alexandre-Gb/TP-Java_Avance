@@ -20,8 +20,10 @@ public final class House {
   }
 
   private double price(Inmate person) {
+    Objects.requireNonNull(person);
+
     return switch (person) {
-      case Minion minion -> 1;
+      case Minion ignored -> 1;
       case VillagePeople villagePeople -> {
         var kind = villagePeople.kind();
         if (discount.containsKey(kind)) {
