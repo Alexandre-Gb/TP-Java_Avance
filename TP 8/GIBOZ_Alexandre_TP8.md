@@ -15,13 +15,8 @@
 
 Interface `Query` :
 ```java
-package fr.uge.query;
-
-import java.util.*;
-import java.util.function.Function;
-
 public sealed interface Query<T> permits Query.QueryImpl {
-  static <T, U> Query<U> fromList(List<T> list, Function<? super T, Optional<? extends U>> mapper) {
+  static <T, U> Query<U> fromList(List<T> list, Function<? super T, ? extends Optional<? extends U>> mapper) {
     Objects.requireNonNull(list);
     Objects.requireNonNull(mapper);
 
@@ -30,9 +25,9 @@ public sealed interface Query<T> permits Query.QueryImpl {
 
   final class QueryImpl<T, U> implements Query<U> {
     private final List<T> elements;
-    private final Function<? super T, Optional<? extends U>> mapper;
+    private final Function<? super T,? extends Optional<? extends U>> mapper;
 
-    QueryImpl(List<T> elements, Function<? super T, Optional<? extends U>> mapper) {
+    QueryImpl(List<T> elements, Function<? super T,? extends Optional<? extends U>> mapper) {
       this.elements = elements;
       this.mapper = mapper;
     }
@@ -94,7 +89,7 @@ public Stream<U> toStream() {
    Attention : vous veillerez à ne pas demander plusieurs fois si un même élément est présent, une seule fois devrait suffire.
    Écrire la méthode toLazyList.**
 
-On définit la métode `toLazyList`:
+On définit la méthode `toLazyList`:
 ```java
 @Override
 public List<U> toLazyList() {
@@ -215,7 +210,7 @@ On créé la méthode `filter`:
 public sealed interface Query<T> permits Query.QueryImpl {
   // ...
   
-  <U> Query<U> map(Function<? super T,? extends U> function);
+  Query<T> filter(Predicate<? super T> predicate);
 
   final class QueryImpl<T, U> implements Query<U> {
     // ...
@@ -236,8 +231,8 @@ On créé la méthode `map`:
 ```java
 public sealed interface Query<T> permits Query.QueryImpl {
   // ...
-  
-  <U> U reduce(U identity, BiFunction<U, ? super T, U> biFunction);
+   
+  <U> Query<U> map(Function<? super T, ? extends U> function);
 
   final class QueryImpl<T, U> implements Query<U> {
     // ...
@@ -259,10 +254,10 @@ On créé la méthode `reduce`:
 ```java
 public sealed interface Query<T> permits Query.QueryImpl {
   // ...
+   
+  <U> U reduce(U identity, BiFunction<U, ? super T, U> biFunction);
 
-  <U> Query<U> map(Function<? super T, ? extends U> function);
-
-  final class QueryImpl<T, U> implements Query<U> {
+   final class QueryImpl<T, U> implements Query<U> {
     // ...
 
     @Override

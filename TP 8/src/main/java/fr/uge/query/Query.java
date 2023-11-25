@@ -54,6 +54,7 @@ public sealed interface Query<T> permits Query.QueryImpl {
       return new AbstractList<>() {
         private final Iterator<? extends T> iterator = elements.iterator();
         private final List<U> cache = new ArrayList<>();
+
         @Override
         public U get(int index) {
           if (index < cache.size()) {
