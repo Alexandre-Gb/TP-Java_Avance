@@ -207,7 +207,7 @@ private Spliterator<T> spliterator(int start, int end) {
     
     @Override
     public int characteristics() {
-      return IMMUTABLE | ORDERED;
+      return IMMUTABLE | ORDERED | SIZED;
     }
   };
 }

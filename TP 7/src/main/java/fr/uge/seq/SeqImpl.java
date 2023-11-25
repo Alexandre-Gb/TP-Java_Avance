@@ -78,7 +78,7 @@ final class SeqImpl<T, U> implements Seq<T> {
 
       @Override
       public int characteristics() {
-        return IMMUTABLE | ORDERED;
+        return IMMUTABLE | ORDERED | SIZED;
       }
     };
   }
