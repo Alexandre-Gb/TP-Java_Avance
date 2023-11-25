@@ -18,10 +18,6 @@ On utilise un Optional<T> pour indiquer qu'une méthode peut renvoyer quelque ch
 
 On définit l'interface fonctionnelle au sein de la classe `StreamEditor`:
 ```java
-package fr.uge.sed;
-
-import java.util.Optional;
-
 public final class StreamEditor {
   @FunctionalInterface
   public interface Rule {
@@ -41,14 +37,6 @@ On peut la gérer avec un "throws IOException".
 
 On ajoute le constructeur de la classe `StreamEditor`:
 ```java
-package fr.uge.sed;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Objects;
-import java.util.Optional;
-
 public final class StreamEditor {
   private final Rule rule;
 
@@ -69,43 +57,46 @@ public final class StreamEditor {
 
 On ajoute la méthode `rewrite`:
 ```java
-  public void rewrite(BufferedReader reader, Writer writer) throws IOException {
-    Objects.requireNonNull(reader);
-    Objects.requireNonNull(writer);
-
-    String line;
-    while ((line = reader.readLine()) != null) {
-      var rewrite = rule.rewrite(line);
-
-      if (rewrite.isPresent()) {
-        writer.write(rule.rewrite(line).orElse("")+"\n");
-        
-        // writer.write(rewrite.orElseThrow());
-        // writer.write('\n');
-      }
+public void rewrite(BufferedReader reader, Writer writer) throws IOException {
+  Objects.requireNonNull(reader);
+  Objects.requireNonNull(writer);
+  
+  String line;
+  while ((line = reader.readLine()) != null) {
+    var rewrite = rule.rewrite(line);
+    if (rewrite.isPresent()) {
+      writer.write(rule.rewrite(line).orElse("")+"\n");
     }
   }
+}
 ```
 
 3. **On souhaite créer la méthode rewrite(input, output) qui prend deux fichiers (pour être exact, deux chemins vers les fichiers) en paramètre et applique la règle sur les lignes du fichier input et écrit le résultat dans le fichier output.**
 
 **Comment faire en sorte que les fichiers ouverts soit correctement fermés ?**
+
+On utilise un `try-with-resources` qui permet de désallouer l'espace ressource juste avant de quitter la méthode.
+
 **Comment doit-on gérer l'IOException ?**
 
-On peut utiliser un try-with-resources pour s'assurer que l'erreur est bien gérée et que les fichiers sont bien fermés.
+On peut utiliser un `try/catch` pour s'assurer que l'erreur est bien gérée et que les fichiers sont bien fermés. 
+Cependant, il est préférable dans de petites fonctions comme celle-ci (dédiée à une unique tâche) de propager l'erreur afin qu'une fonction plus importante (qui articule l'application)
+traite l'erreur correctement et propose une meilleure solution. 
+
+On ajoute donc un `throws IOException` dans la signature de la méthode.
 
 **Écrire la méthode rewrite(input, output).**
 
 On ajoute la méthode `rewrite`:
 ```java
-  public void rewrite(Path input, Path output) throws IOException {
-    Objects.requireNonNull(input);
-    Objects.requireNonNull(output);
+public void rewrite(Path input, Path output) throws IOException {
+  Objects.requireNonNull(input);
+  Objects.requireNonNull(output);
 
-    try (var reader = Files.newBufferedReader(input); var writer = Files.newBufferedWriter(output)) {
-      rewrite(reader, writer);
-    }
+  try (var reader = Files.newBufferedReader(input); var writer = Files.newBufferedWriter(output)) {
+    rewrite(reader, writer);
   }
+}
 ```
 
 4. **On va écrire la méthode createRules qui prend en paramètre une chaîne de caractères et qui construit la règle correspondante.
@@ -119,17 +110,17 @@ On ajoute la méthode `rewrite`:
 
 On ajoute la méthode `createRules`:
 ```java
-  public static Rule createRules(String rules) {
-    Objects.requireNonNull(rules);
-
-    return switch (rules) {
-      case "s" -> s -> Optional.of(s.replaceAll("\\s+", ""));
-      case "u" -> s -> Optional.of(s.toUpperCase(Locale.ROOT));
-      case "l" -> s -> Optional.of(s.toLowerCase(Locale.ROOT));
-      case "d" -> s -> Optional.empty();
-      default -> throw new IllegalArgumentException("Unknown rule: " + rules);
-    };
-  }
+public static Rule createRules(String rules) {
+  Objects.requireNonNull(rules);
+  
+  return switch (rules) {
+    case "s" -> s -> Optional.of(s.replaceAll("\\s+", ""));
+    case "u" -> s -> Optional.of(s.toUpperCase(Locale.ROOT)); // Locale.ROOT to avoid turkish letters etc
+    case "l" -> s -> Optional.of(s.toLowerCase(Locale.ROOT));
+    case "d" -> s -> Optional.empty();
+    default -> throw new IllegalArgumentException("Unknown rule: " + rules);
+  };
+}
 ```
 
 5. **On veut pouvoir composer les règles, par exemple, on veut que "sl" strip les espaces puis mette le résultat en minuscules. 
@@ -137,54 +128,53 @@ On ajoute la méthode `createRules`:
 
 Fonction statique `andThen` dans l'interface `Rule`:
 ```java
-  static Rule andThen(Rule first, Rule second) {
-    Objects.requireNonNull(first);
-    Objects.requireNonNull(second);
-
-    return s -> first.rewrite(s).flatMap(second::rewrite);
-  }
+static Rule andThen(Rule first, Rule second) {
+  Objects.requireNonNull(first);
+  Objects.requireNonNull(second);
+  
+  return s -> first.rewrite(s).flatMap(second::rewrite);
+}
 ```
 
 **Puis modifier le code de createRules pour que les règles soient appliquées les une après les autres.**
 
-On commence par renommer la méthode `createRules` en `createRule`. Cette méthode prendre à présent un simple charactère et sera par conséquent privée:
+On commence par renommer la méthode `createRules` en `createRule`. Cette méthode prendre à présent un unique caractère et sera privée :
 ```java
-  private static Rule createRule(char rule) {
-    return switch (rule) {
-      case 's' -> s -> Optional.of(s.replaceAll("\\s+", ""));
-      // case "u" -> s -> Optional.of(s.toUpperCase());
-      // case "l" -> s -> Optional.of(s.toLowerCase());
-      // Locale.ROOT to avoid turkish letters etc
-      case 'u' -> s -> Optional.of(s.toUpperCase(Locale.ROOT));
-      case 'l' -> s -> Optional.of(s.toLowerCase(Locale.ROOT));
-      case 'd' -> s -> Optional.empty();
-      default -> throw new IllegalArgumentException("Unknown rule: " + rule);
-    };
-  }
+private static Rule createRule(char rule) {
+  return switch (rule) {
+    case 's' -> s -> Optional.of(s.replaceAll("\\s+", ""));
+    // case "u" -> s -> Optional.of(s.toUpperCase());
+    // case "l" -> s -> Optional.of(s.toLowerCase());
+    case 'u' -> s -> Optional.of(s.toUpperCase(Locale.ROOT));
+    case 'l' -> s -> Optional.of(s.toLowerCase(Locale.ROOT));
+    case 'd' -> s -> Optional.empty();
+    default -> throw new IllegalArgumentException("Unknown rule: " + rule);
+  };
+}
 ```
 
 On met à présent en place une méthode `createRules` qui applique correctement les règles avec `andThen`:
 ```java
-  public static Rule createRules(String rules) {
-    Objects.requireNonNull(rules);
-
-    Rule rule = Optional::of;
-    for (int i = 0; i < rules.length(); i++) {
-      rule = Rule.andThen(rule, createRule(rules.charAt(i)));
-    }
-
-    return rule;
+public static Rule createRules(String rules) {
+  Objects.requireNonNull(rules);
+  
+  Rule rule = Optional::of;
+  for (int i = 0; i < rules.length(); i++) {
+    rule = Rule.andThen(rule, createRule(rules.charAt(i)));
   }
+  
+  return rule;
+}
 ```
 
 6. **Écrire la méthode d'instance andThen dans Rule et modifier createRules pour utiliser cette nouvelle méthode.**
 
 On ajoute la méthode par défaut `andThen` à l'interface `Rule`:
 ```java
-    default Rule andThen(Rule second) {
-      Objects.requireNonNull(second);
-      return andThen(this, second);
-    }
+default Rule andThen(Rule second) {
+  Objects.requireNonNull(second);
+  return andThen(this, second);
+}
 ```
 
 7. **Quelle interface fonctionnelle correspond à une fonction qui prend une String et renvoie un boolean ?**
@@ -195,10 +185,10 @@ L'interface fonctionnelle correspondant à ce scénario est un Predicate<String>
 
 On ajoute la méthode `guard(function, rule)`:
 ```java
-    static Rule guard(Predicate<String> predicate, Rule rule) {
-      Objects.requireNonNull(predicate);
-      Objects.requireNonNull(rule);
-
-      return s -> predicate.test(s) ? rule.rewrite(s) : Optional.of(s);
-    }
+static Rule guard(Predicate<String> predicate, Rule rule) {
+  Objects.requireNonNull(predicate);
+  Objects.requireNonNull(rule);
+  
+  return s -> predicate.test(s) ? rule.rewrite(s) : Optional.of(s);
+}
 ```

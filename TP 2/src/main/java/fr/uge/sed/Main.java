@@ -5,7 +5,7 @@ import java.nio.file.Path;
 
 public class Main {
   public static void main(String[] args) {
-/*    if (args.length != 3) {
+    if (args.length != 3) {
       System.err.println("""
         stream-editor rules input.txt output.txt
 
@@ -36,6 +36,6 @@ public class Main {
     } catch (IOException e) {
       System.err.println("error " + e.getMessage());
       System.exit(2);
-    }*/
+    }
   }
 }
