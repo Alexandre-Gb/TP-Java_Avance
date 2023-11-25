@@ -25,14 +25,16 @@ public class Fifo<E> {
   private int tail;
   private int size;
 
-  @SuppressWarnings("unchecked")
   public Fifo(int capacity) {
     if (capacity < 1) {
       throw new IllegalArgumentException();
     }
 
     this.capacity = capacity;
-    fifo = (E[]) new Object[capacity];
+    
+    @SuppressWarnings("unchecked")
+    var fifo = (E[]) new Object[capacity];
+    this.fifo = fifo;
   }
 
   public Fifo() {
@@ -49,6 +51,10 @@ public class Fifo<E> {
     }
   }
 
+  private int reindex(int index) {
+    return index % capacity;
+  }
+
   public int size() {
     return size;
   }
@@ -57,14 +63,16 @@ public class Fifo<E> {
 
 2. **Avez-vous pensé aux préconditions ?**
 
-Oui j'y ai pensé :)
+Oui, j'y ai pensé :)
 
-3. **On souhaite écrire une méthode poll qui retire un élément du tableau circulaire. Que faire si la file est vide ?
-   Écrire le code de la méthode poll.**
+3. **On souhaite écrire une méthode poll qui retire un élément du tableau circulaire.
+     Que faire si la file est vide ?**
 
 Si la file est vide, on renvoi null.
 
-Méthode `poll`, `peek` et `reindex`:
+**Écrire le code de la méthode poll.**
+
+Méthode `poll` et `peek`:
 ```java
 public E peek() {
   return fifo[head];
@@ -81,15 +89,11 @@ public E poll() {
   head = reindex(head + 1);
   return value;
 }
-
-private int reindex(int index) {
-  return index % capacity;
-}
 ```
 
 4. **Rappelez ce qu'est un memory leak en Java**
 
-Un memory leak est une fuite de mémoire, c'est à dire que la mémoire allouée n'est pas libérée.
+Un memory leak est une fuite de mémoire, c'est-à-dire que la mémoire allouée n'est pas libérée.
 Le garbage collector est l'entité devant s'occuper de la libération de mémoire allouée par les objets qui ne sont plus référencés.
 
 La classe ne permet pas de memory leak, car chaque élément est remis à null dans la file lors de l'extraction.
@@ -101,58 +105,7 @@ La classe ne permet pas de memory leak, car chaque élément est remis à null d
 Classe `Fifo`:
 ```java
 public class Fifo<E> {
-  private static final int DEFAULT_CAPACITY = 16;
-  private E[] fifo;
-  private int capacity;
-  private int head;
-  private int tail;
-  private int size;
-
-  @SuppressWarnings("unchecked")
-  public Fifo(int capacity) {
-    if (capacity < 1) {
-      throw new IllegalArgumentException();
-    }
-
-    this.capacity = capacity;
-    fifo = (E[]) new Object[capacity];
-  }
-
-  public Fifo() {
-    this(DEFAULT_CAPACITY);
-  }
-
-  public void offer(E value) {
-    Objects.requireNonNull(value);
-
-    if (size == capacity) {
-      resize();
-    }
-
-    fifo[tail] = value;
-    tail = reindex(tail + 1);
-    size++;
-  }
-
-  public E peek() {
-    return fifo[head];
-  }
-
-  public E poll() {
-    if (fifo[head] == null) {
-      return null;
-    }
-
-    var value = fifo[head];
-    fifo[head] = null;
-    size--;
-    head = reindex(head + 1);
-    return value;
-  }
-
-  private int reindex(int index) {
-    return index % capacity;
-  }
+  // ...
 
   public void resize() {
     var newcapacity = capacity * 2;
@@ -173,9 +126,7 @@ public class Fifo<E> {
     capacity = newcapacity;
   }
 
-  public int size() {
-    return size;
-  }
+  // ...
 }
 ```
 
@@ -211,7 +162,9 @@ Le test passe, aucune modification n'est nécessaire.
 8. **Rappelez quel est le principe d'un itérateur.**
 
 Un itérateur est un objet permettant de parcourir une collection d'objets en ayant la garantie de le faire sous une complexité O(n).
-Un itérateur possède deux méthodes: `hasNext` (qui retourne un booléen indiquant si l'itérateur possède un élément suivant) et `next` (qui retourne l'élément suivant).
+Un itérateur possède deux méthodes : 
+- `hasNext`, qui retourne un booléen indiquant si l'itérateur possède un élément suivant
+- `next`, qui retourne l'élément suivant
 
 **Quel doit être le type de retour de la méthode iterator() ?**
 

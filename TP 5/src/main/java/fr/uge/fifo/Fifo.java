@@ -10,14 +10,16 @@ public class Fifo<E> implements Iterable<E> {
   private int tail;
   private int size;
 
-  @SuppressWarnings("unchecked")
   public Fifo(int capacity) {
     if (capacity < 1) {
       throw new IllegalArgumentException();
     }
 
     this.capacity = capacity;
-    fifo = (E[]) new Object[capacity];
+
+    @SuppressWarnings("unchecked")
+    var fifo = (E[]) new Object[capacity];
+    this.fifo = fifo;
   }
 
   public Fifo() {
