@@ -13,10 +13,12 @@ public interface Slice3<T> {
 
   static <T> Slice3<T> array(T[] array) {
     Objects.requireNonNull(array);
-    return new Slice3<T>() {
+
+    return new Slice3<>() {
       @Override
       public T get(int index) {
         Objects.checkIndex(index, size());
+
         return array[index];
       }
 
@@ -28,6 +30,7 @@ public interface Slice3<T> {
       @Override
       public Slice3<T> subSlice(int from, int to) {
         Objects.checkFromToIndex(from, to, size());
+
         return Slice3.array(array, from, to);
       }
 
@@ -43,12 +46,13 @@ public interface Slice3<T> {
   static <T> Slice3<T> array(T[] array, int from, int to) {
     Objects.requireNonNull(array);
     Objects.checkFromToIndex(from, to, array.length);
-    var sliceArray = Slice3.array(array);
 
-    return new Slice3<T>() {
+    var sliceArray = Slice3.array(array);
+    return new Slice3<>() {
       @Override
       public T get(int index) {
         Objects.checkIndex(index, size());
+
         return sliceArray.get(from + index);
       }
 
@@ -60,6 +64,7 @@ public interface Slice3<T> {
       @Override
       public Slice3<T> subSlice(int arrayFrom, int arrayTo) {
         Objects.checkFromToIndex(arrayFrom, arrayTo, size());
+
         return Slice3.array(array, from + arrayFrom, from + arrayTo);
       }
 

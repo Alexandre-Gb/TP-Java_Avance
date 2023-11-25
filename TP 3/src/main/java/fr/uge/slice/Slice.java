@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
   static <T> Slice<T> array(T[] array) {
     Objects.requireNonNull(array);
+
     return new ArraySlice<>(array);
   }
 
@@ -34,6 +35,7 @@ public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
     @Override
     public T get(int index) {
       Objects.checkIndex(index, size());
+
       return array[index];
     }
 
@@ -45,14 +47,15 @@ public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
     @Override
     public Slice<T> subSlice(int from, int to) {
       Objects.checkFromToIndex(from, to, size());
+
       return new SubArraySlice<>(array, from, to);
     }
 
     @Override
     public String toString() {
       return Arrays.stream(array)
-      .map(Objects::toString)
-      .collect(Collectors.joining(", ", "[", "]"));
+              .map(Objects::toString)
+              .collect(Collectors.joining(", ", "[", "]"));
     }
   }
 
@@ -70,6 +73,7 @@ public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
     @Override
     public T get(int index) {
       Objects.checkIndex(index, size());
+
       return array[from + index];
     }
 
@@ -81,14 +85,15 @@ public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
     @Override
     public Slice<T> subSlice(int from, int to) {
       Objects.checkFromToIndex(from, to, size());
+
       return new SubArraySlice<>(array, this.from + from, this.from + to);
     }
 
     @Override
     public String toString() {
       return Arrays.stream(array, from, to)
-      .map(Objects::toString)
-      .collect(Collectors.joining(", ", "[", "]"));
+              .map(Objects::toString)
+              .collect(Collectors.joining(", ", "[", "]"));
     }
   }
 }

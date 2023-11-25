@@ -9,17 +9,14 @@
 
 1. **Écrire l'interface Slice puis implanter la classe SliceArray et ses méthodes array, size et get(index).**
 
-Code du fichier Slice.java:
+Interface `Slice`:
 ```java
-package fr.uge.slice;
-
-import java.util.Objects;
-
 public sealed interface Slice <T> permits Slice.ArraySlice {
   static <T> Slice<T> array(T[] array) {
     Objects.requireNonNull(array);
     return new ArraySlice<>(array);
   }
+  
   T get(int index);
   int size();
 
@@ -60,7 +57,7 @@ Au lieu d'utiliser `T::toString`, on utilise `Objects::toString` pour éviter le
 
 3. **On souhaite ajouter une surcharge à la méthode array qui, en plus de prendre le tableau en paramètre, prend deux indices from et to et montre les éléments du tableau entre from inclus et to exclus.**
 
-On modifie l'interface Slice en surchargant la méthode array et en ajoutant SubArraySlice:
+On modifie l'interface Slice en surchargeant la méthode array et en faisant l'ensemble des modifications structurelles nécessaires dans une classe `SubArraySlice`:
 ```java
 public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
   static <T> Slice<T> array(T[] array) {
@@ -109,36 +106,22 @@ public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
 }
 ```
 
-Etant donné que l'on vérifie la validité des indexes dans la méthode statique array, et que
+Étant donné que l'on vérifie la validité des index dans la méthode statique array, et que
 le constructeur de SubArraySlice est privé, il ne peut donc être appelé que de cette façon, et donc, il est
-innutile de dupliquer la vérification d'indexes dans le constructeur.
+inutile de dupliquer la vérification d'index dans le constructeur.
 
 4. **On souhaite enfin ajouter une méthode subSlice(from, to) à l'interface Slice qui renvoie un sous-slice restreint aux valeurs entre from inclus et to exclu.**
 
 On ajoute une nouvelle méthode abstraite dans l'interface Slice, afin de pouvoir l'implanter dans les deux classes:
 ```java
 public sealed interface Slice<T> permits Slice.ArraySlice, Slice.SubArraySlice {
-  static <T> Slice<T> array(T[] array) {
-    Objects.requireNonNull(array);
-    return new ArraySlice<>(array);
-  }
-
-  static <T> Slice<T> array(T[] array, int from, int to) {
-    Objects.requireNonNull(array);
-    Objects.checkFromToIndex(from, to, array.length);
-
-    return new SubArraySlice<>(array, from, to);
-  }
-
-  T get(int index);
-
-  int size();
+  // ...
 
   Slice<T> subSlice(int from, int to);
 }
 ```
 
-On implante la méthode subSlice dans la classe ArraySlice:
+On implante la méthode subSlice dans `ArraySlice`:
 ```java
 @Override
 public Slice<T> subSlice(int from, int to) {
@@ -147,7 +130,7 @@ public Slice<T> subSlice(int from, int to) {
 }
 ```
 
-On implante ensuite la méthode subSlice dans la classe SubArraySlice:
+On implante ensuite la méthode subSlice dans `SubArraySlice`:
 ```java
 @Override
 public Slice<T> subSlice(int from, int to) {
@@ -164,14 +147,8 @@ public Slice<T> subSlice(int from, int to) {
     Vous pouvez faire un copier-coller de Slice dans même package, votre IDE devrait vous proposer de renommer la copie. 
     Puis supprimer la classe interne SubArraySlice ainsi que la méthode array(array, from, to) car nous allons les réimplanter et commenter la méthode subSlice(from, to) de l'interface, car nous allons la ré-implanter aussi, mais plus tard.**
 
-Après modifications, on obtient le code suivant:
+Après modifications, on obtient le code suivant :
 ```java
-package fr.uge.slice;
-
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 public sealed interface Slice2<T> permits Slice2.ArraySlice {
   static <T> Slice2<T> array(T[] array) {
     Objects.requireNonNull(array);
@@ -221,7 +198,7 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice {
 
 2. **Déclarer une classe SubArraySlice à l'intérieur de la classe ArraySlice comme une inner class donc pas comme une classe statique et implanter cette classe et la méthode array(array, from, to).**
 
-On ajoute la inner class SubArraySlice dans la classe ArraySlice:
+On ajoute la inner class `SubArraySlice` au sein de la classe `ArraySlice`:
 ```java
 package fr.uge.slice;
 
@@ -366,12 +343,6 @@ public interface Slice3<T> {
 
 On obtient le code suivant:
 ```java
-package fr.uge.slice;
-
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 public interface Slice3<T> {
   
   // ...
@@ -380,7 +351,7 @@ public interface Slice3<T> {
 
   static <T> Slice3<T> array(T[] array) {
     Objects.requireNonNull(array);
-    return new Slice3<T>() {
+    return new Slice3<>() {
       
       // ...
 
@@ -397,7 +368,7 @@ public interface Slice3<T> {
     Objects.checkFromToIndex(from, to, array.length);
     var sliceArray = Slice3.array(array);
 
-    return new Slice3<T>() {
+    return new Slice3<>() {
       @Override
       public T get(int index) {
         Objects.checkIndex(index, size());

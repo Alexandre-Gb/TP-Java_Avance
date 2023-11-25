@@ -7,12 +7,14 @@ import java.util.stream.Collectors;
 public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.SubArraySlice {
   static <T> Slice2<T> array(T[] array) {
     Objects.requireNonNull(array);
+
     return new ArraySlice<>(array);
   }
 
   static <T> Slice2<T> array(T[] array, int from, int to) {
     Objects.requireNonNull(array);
     Objects.checkFromToIndex(from, to, array.length);
+
     return new ArraySlice<>(array).new SubArraySlice(from, to);
   }
 
@@ -33,6 +35,7 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.S
     @Override
     public T get(int index) {
       Objects.checkIndex(index, size());
+
       return array[index];
     }
 
@@ -44,14 +47,15 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.S
     @Override
     public Slice2<T> subSlice(int from, int to) {
       Objects.checkFromToIndex(from, to, size());
+
       return new SubArraySlice(from, to);
     }
 
     @Override
     public String toString() {
       return Arrays.stream(array)
-      .map(Objects::toString)
-      .collect(Collectors.joining(", ", "[", "]"));
+              .map(Objects::toString)
+              .collect(Collectors.joining(", ", "[", "]"));
     }
 
     public final class SubArraySlice implements Slice2<T> {
@@ -61,6 +65,7 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.S
       private SubArraySlice(int from, int to) {
         Objects.requireNonNull(array);
         Objects.checkFromToIndex(from, to, array.length);
+
         this.from = from;
         this.to = to;
       }
@@ -68,6 +73,7 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.S
       @Override
       public T get(int index) {
         Objects.checkIndex(index, size());
+
         return array[from + index];
       }
 
@@ -79,6 +85,7 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.S
       @Override
       public Slice2<T> subSlice(int from, int to) {
         Objects.checkFromToIndex(from, to, size());
+
         return new SubArraySlice(this.from + from, this.from + to);
       }
 
