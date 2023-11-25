@@ -1,5 +1,6 @@
 package fr.uge.test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -28,15 +29,16 @@ public class UnitTest {
       throw new IllegalStateException();
     }
 
+    var errors = new ArrayList<Error>();
     try {
       tests.get(testName).run();
-    } catch (AssertionError | OutOfMemoryError e) { // idk
-      return List.of(new Error(e.getMessage()));
-    } catch (RuntimeException e) {
-      return List.of(new Error(e));
+    } catch (Error error) {
+      errors.add(new Error(error.getMessage()));
+    } catch (Throwable throwable) {
+      errors.add(new AssertionError(throwable));
     }
 
-    return List.of();
+    return List.copyOf(errors);
   }
 
   public int testCount() {
