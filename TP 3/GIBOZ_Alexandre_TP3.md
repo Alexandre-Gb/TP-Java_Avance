@@ -396,3 +396,128 @@ public interface Slice3<T> {
   }
 }
 ```
+
+<br>
+
+## Exercice 5 - Slice & Furious (optionnel)
+
+1. **Déclarer l'interface Slice4 avec les méthodes size, get(index) et subSlice(from, to) abstraites. De plus, la méthode array(array) peut déléguer son implantation à la méthode array(array, from, to).
+     Pour l'instant, commenter la méthode subSlice(from, to) que l'on implantera plus tard.
+     À la suite du fichier, déclarer une classe non publique SliceImpl implantant l'interface Slice4 et implanter la méthode array(array, from, to).**
+
+On créé l'interface `Slice4` et la classe `SliceImpl`:
+```java
+public sealed interface Slice4<T> permits SliceImpl {
+  static <T> Slice4<T> array(T[] array) {
+    Objects.requireNonNull(array);
+    return array(array, 0, array.length);
+  }
+
+  static <T> Slice4<T> array(T[] array, int from, int to) {
+    Objects.requireNonNull(array);
+    Objects.checkFromToIndex(from, to, array.length);
+
+    return new SliceImpl<T>(array, from, to);
+  }
+
+  T get(int index);
+
+  int size();
+
+  // Slice4<T> subSlice(int from, int to);
+}
+
+final class SliceImpl<T> implements Slice4<T> {
+  private final T[] array;
+  private final int from;
+  private final int to;
+
+  SliceImpl(T[] array, int from, int to) {
+    this.array = array;
+    this.from = from;
+    this.to = to;
+  }
+
+  @Override
+  public T get(int index) {
+    Objects.checkIndex(index, size());
+
+    return array[from + index];
+  }
+
+  @Override
+  public int size() {
+    return to - from;
+  }
+
+  @Override
+  public String toString() {
+    return Arrays.stream(array, from, to)
+            .map(Objects::toString)
+            .collect(Collectors.joining(", ", "[", "]"));
+  }
+}
+```
+
+2. **Dé-commenter la méthode subSlice(from, to) et fournissez une implantation de cette méthode.**
+
+On obtient le code suivant :
+```java
+public sealed interface Slice4<T> permits SliceImpl {
+  static <T> Slice4<T> array(T[] array) {
+    Objects.requireNonNull(array);
+    return array(array, 0, array.length);
+  }
+
+  static <T> Slice4<T> array(T[] array, int from, int to) {
+    Objects.requireNonNull(array);
+    Objects.checkFromToIndex(from, to, array.length);
+
+    return new SliceImpl<>(array, from, to);
+  }
+
+  T get(int index);
+
+  int size();
+
+  Slice4<T> subSlice(int from, int to);
+}
+
+final class SliceImpl<T> implements Slice4<T> {
+  private final T[] array;
+  private final int from;
+  private final int to;
+
+  SliceImpl(T[] array, int from, int to) {
+    this.array = array;
+    this.from = from;
+    this.to = to;
+  }
+
+  @Override
+  public T get(int index) {
+    Objects.checkIndex(index, size());
+
+    return array[from + index];
+  }
+
+  @Override
+  public int size() {
+    return to - from;
+  }
+
+  @Override
+  public Slice4<T> subSlice(int from, int to) {
+    Objects.checkFromToIndex(from, to, size());
+
+    return Slice4.array(array, this.from + from, this.from + to);
+  }
+
+  @Override
+  public String toString() {
+    return Arrays.stream(array, from, to)
+            .map(Objects::toString)
+            .collect(Collectors.joining(", ", "[", "]"));
+  }
+}
+```

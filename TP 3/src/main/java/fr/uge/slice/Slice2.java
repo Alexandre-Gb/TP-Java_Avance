@@ -63,9 +63,6 @@ public sealed interface Slice2<T> permits Slice2.ArraySlice, Slice2.ArraySlice.S
       private final int to;
 
       private SubArraySlice(int from, int to) {
-        Objects.requireNonNull(array);
-        Objects.checkFromToIndex(from, to, array.length);
-
         this.from = from;
         this.to = to;
       }

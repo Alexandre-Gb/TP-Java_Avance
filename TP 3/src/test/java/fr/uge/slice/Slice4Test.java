@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Slice4Test {
-  /*
   @Nested
   public class Q1 {
     @Test
@@ -375,5 +374,4 @@ public class Slice4Test {
       assertEquals("[null]", "" + slice);
     }
   }
-  */
 }
