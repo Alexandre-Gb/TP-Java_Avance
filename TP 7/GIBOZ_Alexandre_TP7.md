@@ -3,7 +3,7 @@
 ## GIBOZ Alexandre, INFO2 2023-2025
 ***
 
-[Énoncé](https://www-igm.univ-mlv.fr/ens/IR/IR2/2023-2024/JavaAvance/td07.php)
+[Énoncé](https://www-igm.univ-mlv.fr/ens/IR/IR2/2023-2024/JavaAvance/td09.php)
 ***
 
 ## Exercice 2 - Seq
