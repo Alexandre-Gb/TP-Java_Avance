@@ -2,7 +2,7 @@ package fr.uge.fifo;
 
 import java.util.*;
 
-public class Fifo<E> implements Iterable<E> {
+public class Fifo<E> extends AbstractQueue<E> implements Iterable<E> {
   private static final int DEFAULT_CAPACITY = 16;
   private E[] fifo;
   private int capacity;
@@ -26,7 +26,7 @@ public class Fifo<E> implements Iterable<E> {
     this(DEFAULT_CAPACITY);
   }
 
-  public void offer(E value) {
+  public boolean offer(E value) {
     Objects.requireNonNull(value);
 
     if (size == capacity) {
@@ -36,6 +36,7 @@ public class Fifo<E> implements Iterable<E> {
     fifo[tail] = value;
     tail = reindex(tail + 1);
     size++;
+    return true;
   }
 
   public E peek() {

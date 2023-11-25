@@ -543,7 +543,6 @@ public class FifoTest {
   }
 
 
-  /*
   @Nested
   public class Q10 {
     @Test
@@ -660,5 +659,4 @@ public class FifoTest {
 //      assertEquals(fifo.size(), counter);
 //    }
   }
-   */
 }

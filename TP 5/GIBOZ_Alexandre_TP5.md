@@ -219,3 +219,30 @@ public class Fifo<E> implements Iterable<E> {
   // ...
 }
 ```
+
+10. **Enfin, il existe déjà en Java une interface pour les files d'éléments, java.util.Queue, on souhaite maintenant que notre implantation de tableau circulaire Fifo implante cette interface.
+      Pour nous aider, il existe une classe abstraite java.util.AbstractQueue, qui implante déjà un certain nombre de méthodes de l'interface Queue, il ne vous reste plus qu'à implanter les méthodes manquantes.**
+
+On modifie la classe pour qu'elle étende `AbstractQueue` :
+```java
+public class Fifo<E> extends AbstractQueue<E> implements Iterable<E> {
+  // ...
+}
+```
+
+La méthode `offer()` doit, à présent, retourner une valeur booléenne. 
+Étant donné que notre méthode n'a pas de scénario ou une impossibilité d'ajout pourrait survenir, on se contente de toujours renvoyer `true` à la fin de la méthode :
+```java
+public boolean offer(E value) {
+  Objects.requireNonNull(value);
+  
+  if (size == capacity) {
+    resize();
+  }
+  
+  fifo[tail] = value;
+  tail = reindex(tail + 1);
+  size++;
+  return true;
+}
+```
