@@ -30,8 +30,10 @@ public class UnitTest {
 
     try {
       tests.get(testName).run();
-    } catch (AssertionError e) {
+    } catch (AssertionError | OutOfMemoryError e) { // idk
       return List.of(new Error(e.getMessage()));
+    } catch (RuntimeException e) {
+      return List.of(new Error(e));
     }
 
     return List.of();
