@@ -25,6 +25,7 @@ public sealed interface Graph<T> permits MatrixGraph, NodeMapGraph {
    * @param <T>       type of the edge weight.
    * @param nodeCount the number of nodes.
    * @return a new implementation of Graph.
+   * @throws IllegalArgumentException if nodeCount is a negative value.
    */
   static <T> Graph<T> createMatrixGraph(int nodeCount) {
     if (nodeCount < 0) {

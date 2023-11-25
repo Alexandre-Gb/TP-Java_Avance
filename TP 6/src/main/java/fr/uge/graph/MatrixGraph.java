@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 final class MatrixGraph<T> implements Graph<T> {
   private final T[] graph;
@@ -14,24 +13,27 @@ final class MatrixGraph<T> implements Graph<T> {
     if (nodeCount < 0) { throw new IllegalArgumentException(); }
 
     @SuppressWarnings("unchecked")
-    T[] graph = (T[]) new Object[nodeCount * nodeCount];
+    var graph = (T[]) new Object[nodeCount * nodeCount];
     this.graph = graph;
     this.nodeCount = nodeCount;
+  }
+
+  private void checkBothIndexes(int src, int dst) {
+    Objects.checkIndex(src, nodeCount);
+    Objects.checkIndex(dst, nodeCount);
   }
 
   @Override
   public void addEdge(int src, int dst, T weight) {
     Objects.requireNonNull(weight);
-    Objects.checkIndex(src, nodeCount);
-    Objects.checkIndex(dst, nodeCount);
+    checkBothIndexes(src, dst);
 
     graph[src * nodeCount + dst] = weight;
   }
 
   @Override
   public Optional<T> getWeight(int src, int dst) {
-    Objects.checkIndex(src, nodeCount);
-    Objects.checkIndex(dst, nodeCount);
+    checkBothIndexes(src, dst);
 
     return Optional.ofNullable(graph[src * nodeCount + dst]);
   }
