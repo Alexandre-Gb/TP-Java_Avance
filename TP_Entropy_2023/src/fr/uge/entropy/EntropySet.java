@@ -4,7 +4,7 @@ import java.util.*;
 
 public class EntropySet<T> implements Iterable<T> {
   private static final int CACHE_SIZE = 4;
-  private final HashSet<T> set = new HashSet<>();
+  private final LinkedHashSet<T> set = new LinkedHashSet<>();
   private final T[] cache;
   private boolean frozen;
 
