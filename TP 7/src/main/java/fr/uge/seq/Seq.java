@@ -19,6 +19,7 @@ public interface Seq<T> extends Iterable<T> {
   default Iterator<T> iterator() {
     return new Iterator<>() {
       private int i;
+
       @Override
       public boolean hasNext() {
         return i < size();

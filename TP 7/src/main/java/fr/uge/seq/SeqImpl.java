@@ -36,7 +36,7 @@ final class SeqImpl<T, U> implements Seq<T> {
       return Optional.empty();
     }
 
-    return Optional.of(get(0)); // Will map automatically
+    return Optional.of(get(0)); // Will map automatically via get
   }
 
   @Override
@@ -47,6 +47,7 @@ final class SeqImpl<T, U> implements Seq<T> {
   private Spliterator<T> spliterator(int start, int end) {
     return new Spliterator<>() {
       private int i = start;
+
       @Override
       public boolean tryAdvance(Consumer<? super T> action) {
         Objects.requireNonNull(action);
@@ -86,6 +87,7 @@ final class SeqImpl<T, U> implements Seq<T> {
   public <E> Seq<E> map(Function<? super T, ? extends E> mapper) {
     Objects.requireNonNull(mapper);
 
+    // return new SeqImpl<E, U>(elements, this.mapper.andThen(mapper));
     return new SeqImpl<>(elements, this.mapper.andThen(mapper));
   }
 

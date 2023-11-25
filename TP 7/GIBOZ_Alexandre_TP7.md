@@ -10,7 +10,6 @@
 
 1. **Dans un premier temps, on va définir une classe SeqImpl qui est une implantation de l'interface Seq dans le même package que Seq.
    Écrire le constructeur dans la classe SeqImpl ainsi que la méthode from(list) dans l'interface Seq sachant que, comme indiqué ci-dessus, SeqImpl contient une liste non mutable.
-   Expliquer pourquoi le constructeur ne doit pas être public ?
    Puis déclarer les méthodes size et get() dans l'interface Seq et implanter ces méthodes dans la classe SeqImpl.**
 
 Interface `Seq`:
@@ -29,17 +28,12 @@ public sealed interface Seq<T> permits SeqImpl {
 
 Classe `SeqImpl`:
 ```java
-package fr.uge.seq;
-
-import java.util.List;
-import java.util.Objects;
-
 final class SeqImpl<T> implements Seq<T> {
   private final List<T> elements;
 
   SeqImpl(List<T> elements) {
-    // Objects.requireNonNull(elements); Not mandatory as it is an implementation
-    // this.elements = List.copyOf(elements); Not mandatory as it is an implementation and we always make a defensive copy
+    // Objects.requireNonNull(elements); Not mandatory as it is an implementation, and we already checked if the provided List was null or not
+    // this.elements = List.copyOf(elements); Not mandatory as it is an implementation, and we already have made a defensive copy
     this.elements = elements;
   }
 
@@ -56,9 +50,15 @@ final class SeqImpl<T> implements Seq<T> {
 }
 ```
 
+**Expliquer pourquoi le constructeur ne doit pas être public ?**
+
+L'implémentation, à savoir `SeqImpl` ne sera pas visible de l'extérieur, ainsi, une entité externe ne doit pouvoir utiliser SeqImpl uniquement au travers de l'interface `Seq`.
+Mettre le constructeur en visibilité package permet d'atteindre cet objectif.
+L'instanciation d'un `SeqImpl` ne pourra ainsi se faire que par `Seq` (ou autre entité ajoutée au package ultérieurement) au travers de la factory method.
+
 2. **On souhaite écrire une méthode d'affichage permettant d'afficher les valeurs d'un Seq séparées par des virgules (suivies d'un espace), l'ensemble des valeurs étant encadré par des chevrons ('<' et '>').**
 
-On redéfinit la méthode `toString` dans l'implémentation:
+On redéfinit la méthode `toString` dans l'implémentation :
 ```java
 @Override
 public String toString() {
@@ -78,22 +78,7 @@ public String toString() {
    Bien sûr, cela va nous obliger à changer l'implantation déjà existante de SeqImpl car maintenant tous les Seq vont stocker une liste d'éléments ainsi qu'une fonction de transformation (de mapping).
    Avant de se lancer dans l'implantation de map, quelle doit être sa signature ?**
 
-On ajoute la méthode abstraite à l'interface `Seq`:
-```java
-public sealed interface Seq<T> permits SeqImpl {
-  static <T> Seq<T> from(List<? extends T> list) {
-    Objects.requireNonNull(list);
-    // return new SeqImpl<T, T>(list, Function.identity());
-    return new SeqImpl<>(list, Function.identity());
-  }
-   
-  // ...
-
-  <U> Seq<U> map(Function<? super T, ? extends U> function);
-}
-```
-
-On modifie ensuite l'implémentation:
+On modifie l'implémentation :
 ```java
 final class SeqImpl<T, U> implements Seq<T> {
   private final List<U> elements;
@@ -103,12 +88,7 @@ final class SeqImpl<T, U> implements Seq<T> {
     this.elements = List.copyOf(elements);
     this.mapper = mapper;
   }
-
-  @Override
-  public int size() {
-    return elements.size();
-  }
-
+  
   @Override
   public T get(int index) {
     Objects.checkIndex(index, size());
@@ -123,13 +103,23 @@ final class SeqImpl<T, U> implements Seq<T> {
     return new SeqImpl<>(elements, this.mapper.andThen(mapper));
   }
 
-  @Override
-  public String toString() {
-    return elements.stream()
-            .map(mapper)
-            .map(Objects::toString)
-            .collect(Collectors.joining(", ", "<", ">"));
+  // ...
+}
+```
+
+On ajoute ensuite la méthode abstraite à l'interface `Seq`.
+On donne également une `Function.identity()` en tant que second paramètre du constructeur étant donné la modification structurelle effectuée ci-dessus :
+```java
+public sealed interface Seq<T> permits SeqImpl {
+  static <T> Seq<T> from(List<? extends T> list) {
+    Objects.requireNonNull(list);
+    // return new SeqImpl<T, T>(list, Function.identity());
+    return new SeqImpl<>(list, Function.identity());
   }
+   
+  // ...
+
+  <U> Seq<U> map(Function<? super T, ? extends U> function);
 }
 ```
 
@@ -160,7 +150,7 @@ final class SeqImpl<T, U> implements Seq<T> {
       return Optional.empty();
     }
 
-    return Optional.of(get(0)); // Will map automatically
+    return Optional.of(get(0)); // Will map automatically via get
   }
   
   // ...
@@ -182,43 +172,45 @@ La meilleure option semble être la classe anonyme dans la méthode spliterator(
 **Écrire les 4 méthodes du Spliterator.**
 
 ```java
-  private Spliterator<T> spliterator(int start, int end) {
-    return new Spliterator<>() {
-      private int i = start;
-      @Override
-      public boolean tryAdvance(Consumer<? super T> action) {
-        Objects.requireNonNull(action);
-        if (i < end) {
-          action.accept(get(i++));
-          return true;
-        }
-
-        return false;
+private Spliterator<T> spliterator(int start, int end) {
+  return new Spliterator<>() {
+    private int i = start;
+    
+    @Override
+    public boolean tryAdvance(Consumer<? super T> action) {
+      Objects.requireNonNull(action);
+      
+      if (i < end) {
+        action.accept(get(i++));
+        return true;
       }
-
-      @Override
-      public Spliterator<T> trySplit() {
-        var middle = (i + end) >>> 1;
-        if (middle == i) {
-          return null;
-        }
-
-        var spliterator = spliterator(i, middle);
-        i = middle;
-        return spliterator;
+      return false;
+    }
+    
+    @Override
+    public Spliterator<T> trySplit() {
+      var middle = (i + end) >>> 1;
+      
+      if (middle == i) {
+        return null;
       }
-
-      @Override
-      public long estimateSize() {
-        return end - i;
-      }
-
-      @Override
-      public int characteristics() {
-        return IMMUTABLE | ORDERED;
-      }
-    };
-  }
+      
+      var spliterator = spliterator(i, middle);
+      i = middle;
+      return spliterator;
+    }
+    
+    @Override
+    public long estimateSize() {
+      return end - i;
+    }
+    
+    @Override
+    public int characteristics() {
+      return IMMUTABLE | ORDERED;
+    }
+  };
+}
 ```
 
 **Puis déclarer la méthode stream dans l'interface et implanter celle-ci dans SeqImpl sachant qu'il existe la méthode StreamSupport.stream qui permet de créer un Stream à partir de ce Spliterator.**
@@ -259,7 +251,7 @@ static <T> Seq<T> of(T... elements) {
 
 7. **On souhaite faire en sorte que l'on puisse utiliser la boucle for-each-in sur un Seq.**
 
-On modifie l'interface pour qu'elle extends Iterable, puis on implante la méthode par defaut "iterator()":
+On modifie l'interface pour qu'elle étende Iterable, puis on implante la méthode par défaut "iterator()":
 ```java
 public interface Seq<T> extends Iterable<T> {
   // ...
@@ -267,6 +259,7 @@ public interface Seq<T> extends Iterable<T> {
   default Iterator<T> iterator() {
     return new Iterator<>() {
       private int i;
+      
       @Override
       public boolean hasNext() {
         return i < size();
