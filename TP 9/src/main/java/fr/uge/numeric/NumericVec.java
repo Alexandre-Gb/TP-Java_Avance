@@ -1,13 +1,12 @@
 package fr.uge.numeric;
 
-import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.LongFunction;
+import java.util.function.Supplier;
 import java.util.function.ToLongFunction;
-import java.util.stream.LongStream;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -26,19 +25,28 @@ public class NumericVec<T> extends AbstractList<T> {
 
   public static NumericVec<Long> longs(long... values) {
     Objects.requireNonNull(values);
+
     return new NumericVec<>(Arrays.copyOf(values, values.length), e -> e, e -> e);
   }
 
   public static NumericVec<Integer> ints(int... values) {
     Objects.requireNonNull(values);
+
     var array = Arrays.stream(values).mapToLong(e -> e).toArray();
     return new NumericVec<>(array, e -> (int) e, Integer::longValue);
   }
 
   public static NumericVec<Double> doubles(double... values) {
     Objects.requireNonNull(values);
+
     var array = Arrays.stream(values).mapToLong(Double::doubleToRawLongBits).toArray();
     return new NumericVec<>(array, Double::longBitsToDouble, Double::doubleToRawLongBits);
+  }
+
+  public static <T> Collector<T, ?, NumericVec<T>> toNumericVec(Supplier<NumericVec<T>> factory) {
+    Objects.requireNonNull(factory);
+
+    return Collectors.toCollection(factory);
   }
 
   public boolean add(T value) {
@@ -52,6 +60,25 @@ public class NumericVec<T> extends AbstractList<T> {
 
     values[size] = into.applyAsLong(value);
     size++;
+    return true;
+  }
+
+  public boolean addAll(Collection<? extends T> collection) {
+    Objects.requireNonNull(collection);
+    if (collection.isEmpty()) {
+      return false;
+    }
+
+    if (collection instanceof NumericVec<?> numericVec) {
+      if (values.length < size + numericVec.size) {
+        values = Arrays.copyOf(values, size + numericVec.size);
+      }
+      System.arraycopy(numericVec.values, 0, values, size, numericVec.size);
+      size += numericVec.size;
+    } else {
+      collection.forEach(this::add);
+    }
+
     return true;
   }
 

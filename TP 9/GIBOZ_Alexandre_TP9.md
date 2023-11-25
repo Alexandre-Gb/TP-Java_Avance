@@ -21,6 +21,7 @@ public class NumericVec<T> {
   }
 
   public static NumericVec<Long> longs(long... values) {
+    Objects.requireNonNull(values);
     return new NumericVec<>(Arrays.copyOf(values, values.length));
   }
 
@@ -38,7 +39,8 @@ public class NumericVec<T> {
 2. **On souhaite ajouter une méthode add(element) qui permet d'ajouter un élément. 
      Le tableau utilisé par NumericVec doit s'agrandir dynamiquement pour permettre d'ajouter un nombre arbitraire d'éléments.**
 
-On modifie la logique de la méthode afin qu'elle resize de manière plus souple. On procède ainsi:
+On modifie la logique de la méthode afin qu'elle resize de manière plus souple. 
+On procède ainsi :
 ```java
 public class NumericVec<T> {
   private long[] values;
@@ -58,7 +60,7 @@ public class NumericVec<T> {
 
     if (size == 0) {
       values = new long[1];
-    } else if (size >= values.length) {
+    } else if (size >= values.length) { // "==" works as well, im just paranoid
       values = Arrays.copyOf(values, size * 2);
     }
 
@@ -225,5 +227,44 @@ public class NumericVec<T> extends AbstractList<T> {
   }
   
   // ...
+}
+```
+
+6. **On souhaite ajouter une méthode addAll qui permet d'ajouter une collection à un NumericVec déjà existant. 
+     Techniquement, l'implantation de addAll que l'on reçoit de AbstractList marche déjà, mais ici, on va faire une implantation plus efficace dans le cas où le paramètre est aussi un NumericVec.
+     Écrire le code de la méthode addAll qui optimise le cas où le paramètre est aussi un NumericVec.**
+
+On obtient le code suivant : 
+```java
+public boolean addAll(Collection<? extends T> collection) {
+  Objects.requireNonNull(collection);
+  if (collection.isEmpty()) {
+    return false;
+  }
+  
+  if (collection instanceof NumericVec<?> numericVec) {
+    if (values.length < size + numericVec.size) {
+      values = Arrays.copyOf(values, size + numericVec.size);
+    }
+    
+    System.arraycopy(numericVec.values, 0, values, size, numericVec.size);
+    size += numericVec.size;
+  } else {
+    collection.forEach(this::add);
+  }
+  
+  return true;
+}
+```
+
+7. **On souhaite écrire une méthode toNumericVec(factory) qui prend en paramètre une référence de méthode permettant de créer un NumericVec et renvoie un Collector qui peut être utilisé pour collecter des valeurs numériques dans un des NumericVec créés par la référence de méthode.
+    Écrire la méthode toNumericVec.**
+
+On définit la méthode statique :
+```java
+public static <T> Collector<T, ?, NumericVec<T>> toNumericVec(Supplier<NumericVec<T>> factory) {
+  Objects.requireNonNull(factory);
+  
+  return Collectors.toCollection(factory);
 }
 ```
