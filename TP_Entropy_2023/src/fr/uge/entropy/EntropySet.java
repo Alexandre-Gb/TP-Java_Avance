@@ -2,30 +2,33 @@ package fr.uge.entropy;
 
 import java.util.*;
 
-public class EntropySet<T> implements Iterable<T> {
+public class EntropySet<T> extends AbstractSet<T> implements Iterable<T> {
   private static final int CACHE_SIZE = 4;
-  private final LinkedHashSet<T> set = new LinkedHashSet<>();
-  private final T[] cache;
+  private final Set<T> set = new LinkedHashSet<>();
+  @SuppressWarnings("unchecked") // Same as applying it to a local variable in constructor
+  private final T[] cache = (T[]) new Object[CACHE_SIZE];
   private boolean frozen;
 
-  public EntropySet() {
-    @SuppressWarnings("unchecked")
-    var cache = (T[]) new Object[CACHE_SIZE];
-    this.cache = cache;
-  }
+//  public EntropySet() {
+//    @SuppressWarnings("unchecked")
+//    var cache = (T[]) new Object[CACHE_SIZE];
+//    this.cache = cache;
+//  }
 
-  public void add(T value) {
+  public boolean add(T value) {
     Objects.requireNonNull(value);
+
+    // Important to place this one before the contains condition, else it will return without an error
     if (frozen) { throw new UnsupportedOperationException(); }
-    if (containsNoFreeze(value)) { return; } // Avoid freeze as it should only do so when using an API call
+    if (containsNoFreeze(value)) { return false; } // Avoids freeze as it should only do so when using an API call
 
     var emptySlot = emptyCacheSpace();
     emptySlot.ifPresentOrElse(
-        index -> {
-          cache[index] = value;
-        },
+        index -> cache[index] = value,
         () -> set.add(value)
     );
+
+    return false;
   }
 
   public int size() {
@@ -82,7 +85,7 @@ public class EntropySet<T> implements Iterable<T> {
 
       @Override
       public boolean hasNext() {
-        return i < CACHE_SIZE || setIterator.hasNext();
+        return (i < CACHE_SIZE && cache[i] != null) || setIterator.hasNext();
       }
 
       @Override

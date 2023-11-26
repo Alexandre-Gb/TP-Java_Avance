@@ -331,7 +331,6 @@ public class EntropySetTest {
   }
 
 
-  /*
   @Nested
   public class Q6 {
     @Test
@@ -397,6 +396,7 @@ public class EntropySetTest {
   }
 
 
+  /*
   @Nested
   public class Q7 {
     @Test
