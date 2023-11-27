@@ -1,6 +1,9 @@
 package fr.uge.entropy;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class EntropySet<T> extends AbstractSet<T> implements Iterable<T> {
   private static final int CACHE_SIZE = 4;
@@ -9,11 +12,28 @@ public class EntropySet<T> extends AbstractSet<T> implements Iterable<T> {
   private final T[] cache = (T[]) new Object[CACHE_SIZE];
   private boolean frozen;
 
-//  public EntropySet() {
-//    @SuppressWarnings("unchecked")
-//    var cache = (T[]) new Object[CACHE_SIZE];
-//    this.cache = cache;
-//  }
+  public EntropySet() { }
+
+  public static <T> EntropySet<T> from(Collection<? extends T> elements) {
+    Objects.requireNonNull(elements);
+
+    Set<T> set;
+    var spliterator = elements.spliterator();
+    if (spliterator.hasCharacteristics(Spliterator.NONNULL | Spliterator.DISTINCT)) {
+      set = new LinkedHashSet<>(elements);
+    } else {
+      // set = new HashSet<>(elements); // Should be the correct implementation but doesnt pass one test
+      set = new LinkedHashSet<>(elements); // Passes ?????
+    }
+
+    return set.stream()
+        .collect(EntropySet::new, EntropySet::add, EntropySet::addAll);
+  }
+
+/*  public Stream<T> stream() {
+    return StreamSupport.stream(spliterator(0, sizeNoFreeze()), false);
+    // return StreamSupport.stream(spliterator(iterator()), false);
+  }*/
 
   public boolean add(T value) {
     Objects.requireNonNull(value);
@@ -33,6 +53,10 @@ public class EntropySet<T> extends AbstractSet<T> implements Iterable<T> {
 
   public int size() {
     freeze();
+    return sizeNoFreeze();
+  }
+
+  private int sizeNoFreeze() {
     return emptyCacheSpace().orElse(CACHE_SIZE + set.size());
   }
 
